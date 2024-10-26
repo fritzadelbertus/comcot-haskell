@@ -1,0 +1,15 @@
+TO UNDERSTAND THE FLOW OF THE COMCOT MODEL CREATION, PLEASE READ THE CODE IN THIS FOLLOWING ORDER
+
+1. type_module.hs
+2. initialization.hs
+3. all_grids.hs
+4. boundaries.hs
+5. comcot.hs
+6. wavemaker.hs
+7. deform.hs
+8. landslide.hs
+9. mass.hs
+10. moment.hs
+11. dispersion.hs
+12. hotstart.hs
+13. output.hs
