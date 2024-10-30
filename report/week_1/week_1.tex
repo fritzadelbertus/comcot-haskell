@@ -1,0 +1,105 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\title{Project Report}
+\subtitle{\textit{Week 1}}
+\date[]{2024/2025}
+\author[Fritz]{Fritz Adelbertus Sitindaon}
+
+\input{../package.tex}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+
+% \input{pembagian/materi_sebelumnya}
+\begin{frame}{What is COMCOT?}
+    \begin{itemize}
+        \item COMCOT adalah alat pemodelan 
+        numerik yang dikembangkan terutama 
+        untuk mensimulasikan propagasi gelombang 
+        tsunami, run-up, dan inundasi. 
+        \item Fitur pada comcot meliputi penggunaan 
+        persamaan air dangkal, menerapkan sistem multi-grid,
+        dan mengintegrasi kondisi sumber patahan dan tanah longsor.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{File Structure and Size}
+    \begin{itemize}
+        \item $type\_module.f90$: 180 lines
+        \item $initialization.f90$: 2021 lines
+        \item $all\_grids.f90$: 927 lines
+        \item $boundaries.f90$: 439 lines
+        \item $comcot.f90$: 526 lines
+        \item $wavemaker.f90$: 362 lines
+        \item $deform.f90$: 675 lines
+        \item $landslide.f90$: 299 lines
+        \item $mass.f90$: 205 lines
+        \item $moment.f90$: 939 lines
+        \item $dispersion.f90$: 1647 lines
+        \item $hotstart.f90$: 138 lines
+        \item $output.f90$: 1010 lines
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{File Structure and Size}
+    \begin{itemize}
+        \item $comcot.ctl$: file untuk mengisi input simulasi
+        \item $fault\_multi.ctl$: file input tambahan jika sumber patahan lebih dari satu
+        \item $landslide.ctl$: file input jika tsunami berasal dari tanah longsor
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Porting initialization.f90 ke initialization.hs}
+    \begin{itemize}
+        \item initialization berisi setup awal program.
+        \item initialization meliputi pembacaan input dan konfigurasi dari $.ctl$, 
+        pembacaan data-data awal, pensettingan grid dan fungsi-fungsi helper
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Porting initialization.f90 ke initialization.hs}
+    $READ\_CONFIG$
+    \begin{itemize}
+        \item $READ\_CONFIG$ membaca semua parameter dari $comcot.ctl$.
+        \item $READ\_CONFIG$ juga menyetel grid.
+        \item $READ\_CONFIG$ berisi $\pm$ 150 line untuk membaca $comcot.ctl$.
+    \end{itemize}
+    \includegraphics[scale=0.5]{figure/read_config_2.png}
+        
+\end{frame}
+
+\begin{frame}{Porting initialization.f90 ke initialization.hs}
+    $READ\_CONFIG$
+    \includegraphics[scale=0.5]{figure/read_config_1.png}
+\end{frame}
+
+\begin{frame}{Porting initialization.f90 ke initialization.hs}
+    $READ\_MULTIFAULT\_DATA$
+    \begin{itemize}
+        \item $READ\_MULTIFAULT\_DATA$ membaca semua parameter dari $fault\_multi.ctl$.
+        \item $READ\_MULTIFAULT\_DATA$ berisi $\pm$ 50 line untuk membaca $fault\_multi.ctl$.
+    \end{itemize}
+    \includegraphics[scale=0.5]{figure/read_fault_multi.png}
+        
+\end{frame}
+
+\begin{frame}{Porting initialization.f90 ke initialization.hs}
+    $GET\_LANDSLIDE\_PARAMETERS$
+    \begin{itemize}
+        \item $GET\_LANDSLIDE\_PARAMETERS$ membaca semua parameter dari $landslide.ctl$.
+        \item $GET\_LANDSLIDE\_PARAMETERS$ berisi $\pm$ 40 line untuk membaca $landslide.ctl$.
+    \end{itemize}
+    \includegraphics[scale=0.5]{figure/read_landslide.png}
+\end{frame}
+
+\end{document}

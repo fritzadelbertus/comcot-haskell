@@ -1,0 +1,40 @@
+% ===== Setup Font =====
+\usepackage[sfdefault,lf]{carlito}
+\usepackage[T1]{fontenc}
+\renewcommand*\oldstylenums[1]{\carlitoOsF #1}
+
+% ==== Import Math Packages =====
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+
+% ==== There required =====
+
+\usepackage[most]{tcolorbox}
+\def\wallpaper{wallpaper.jpg}
+
+\def\R{\mathbb{R}}
+\def\P{\mathbb{P}}
+\def\N{\mathbb{N}}
+\def\O{\mathbb{O}}
+
+
+\def\nX{\mathcal{X}}
+\def\nY{\mathcal{Y}}
+\def\nT{\mathcal{T}}
+\def\nU{\mathcal{U}}
+\def\nB{\mathcal{B}}
+\def\nS{\mathcal{S}}
+\def\nP{\mathcal{P}}
+\def\nA{\mathcal{A}}
+\def\nF{\mathcal{F}}
+\newcommand{\comp}[1]{\overline{#1}} 
+
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter\cic{[ }{] }
+\DeclarePairedDelimiter\oic{( }{] }
+\DeclarePairedDelimiter\cio{[ }{) }
+\DeclarePairedDelimiter\oio{( }{) }
+\DeclarePairedDelimiter\set{\{ }{\} }
+\DeclarePairedDelimiter\brk{(}{)}
+\DeclarePairedDelimiter\seq{\langle}{\rangle}

@@ -1,5 +1,11 @@
 -- ADA 25 "BIG" Functions pada initialization.f90
 
+module Initialization (
+        readComcotCtl,
+        readFaultMultiCtl,
+        readLandslideCtl
+    ) where
+    
 import Helper (removeLeadingSpaces)
 
 -- Constants
@@ -52,13 +58,12 @@ getRootLayerParameters content = extractSection content rootLayerRange
 getChildLayersParameters:: String -> [[String]]
 getChildLayersParameters content = map (extractSection content) layersRange
 
--- main :: IO ()
--- main = do
---     content <- readFile "comcot.ctl"
---     print $ getAllParameters content
---     print $ getRootLayerParameters content
---     print $ layersRange
---     print $ getChildLayersParameters content
+readComcotCtl:: IO()
+readComcotCtl = do
+    content <- readFile "comcot.ctl"
+    print $ getAllParameters content
+    print $ getRootLayerParameters content
+    print $ getChildLayersParameters content
 
 -- 2. GET_INI_SURF  (LOGIC)
 -- !DESCRIPTION:
@@ -99,10 +104,10 @@ faultsRange = [[n+3..n+17] | n <- [10,29..732]]
 getAllFaultModelParameter:: String -> [[String]]
 getAllFaultModelParameter content = map (extractSection content) faultsRange
 
--- main :: IO ()
--- main = do
---     content <- readFile "fault_multi.ctl"
---     print $ getAllFaultModelParameter content
+readFaultMultiCtl :: IO ()
+readFaultMultiCtl = do
+    content <- readFile "fault_multi.ctl"
+    print $ getAllFaultModelParameter content
 
 -- 4. READ_MULTIFAULT_DATA (LO,FLT)
 -- !DESCRIPTION:
@@ -140,10 +145,13 @@ getAllFaultModelParameter content = map (extractSection content) faultsRange
 -- !OUTPUT:
 -- !	  #. ADDITIONAL LANDSLIDE PARAMETERS FOR LANDSLIDE CONFIGURATION;
 
-getLandSlideParameter:: String -> [String]
-getLandSlideParameter content = extractSection content [13..22]
+landslideRange:: [Int]
+landslideRange = [13..22]
 
-main :: IO ()
-main = do
+getLandSlideParameter:: String -> [String]
+getLandSlideParameter content = extractSection content landslideRange
+
+readLandslideCtl :: IO ()
+readLandslideCtl = do
     content <- readFile "landslide.ctl"
     print $ getLandSlideParameter content
