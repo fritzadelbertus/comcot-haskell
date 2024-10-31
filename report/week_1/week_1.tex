@@ -7,6 +7,8 @@
 \date[]{2024/2025}
 \author[Fritz]{Fritz Adelbertus Sitindaon}
 
+\usetheme{Warsaw}
+\setbeamertemplate{footline}[frame number]
 \input{../package.tex}
 
 \begin{document}
@@ -15,9 +17,6 @@
 \titlepage
 \end{frame}
 
-\begin{frame}{Outline}
-    \tableofcontents
-\end{frame}
 
 
 % \input{pembagian/materi_sebelumnya}
@@ -30,6 +29,24 @@
         \item Fitur pada comcot meliputi penggunaan 
         persamaan air dangkal, menerapkan sistem multi-grid,
         dan mengintegrasi kondisi sumber patahan dan tanah longsor.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Proses Pembentukan dan Perambatan Tsunami}
+    \begin{center}
+        \includegraphics[scale=0.3]{figure/how_tsunami_works.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}{How the code was modularize}
+    \begin{enumerate}
+        \item Terjadinya patahan atau tanah longsor di bawah laut. $deform.f90,\,landslide.f90$.
+        \item Pembentukan awal gelombang tsunami. $wavemaker.f90,\,dispersion.f90$.
+        \item Perambatan gelombang tsunami ke daerah pesisir. $mass.f90,\,moment.f90$.
+    \end{enumerate}
+    \begin{itemize}
+        \item Penyettingan solusi numerik $type\_module.f90,\,all\_grids.f90,\,boundaries.f90$.
+        \item Penyettingan program $comcot.f90,\,initialization.f90,\,hotstart.f90,\,output.f90$.
     \end{itemize}
 \end{frame}
 
