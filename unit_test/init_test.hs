@@ -1,8 +1,4 @@
-import Initialization (
-        readComcotCtl,
-        readFaultMultiCtl,
-        readLandslideCtl
-    )
+import Initialization
 
 
 main :: IO ()
@@ -11,5 +7,7 @@ main = do
     -- readComcotCtl
     -- print "READING FAULT_MULTI.CTL"
     -- readFaultMultiCtl
-    print "READING LANDSLIDE.CTL"
-    readLandslideCtl
+    -- print "READING LANDSLIDE.CTL"
+    -- readLandslideCtl
+    print (1 : [2])
+

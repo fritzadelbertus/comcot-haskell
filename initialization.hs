@@ -1,12 +1,7 @@
--- ADA 25 "BIG" Functions pada initialization.f90
+module Initialization where
 
-module Initialization (
-        readComcotCtl,
-        readFaultMultiCtl,
-        readLandslideCtl
-    ) where
-    
 import Helper (removeLeadingSpaces)
+import TypeModule
 
 -- Constants
 parameterIndent:: Int
@@ -18,51 +13,75 @@ getParameterValue content line = drop parameterIndent $ lines content !! line
 extractSection:: String -> [Int] -> [String]
 extractSection content = map (removeLeadingSpaces . getParameterValue content)
 
+--------------------------------------------------------
 -- 1. READ CONFIG (FILE READING)
--- !DESCRIPTION:
--- !	  #. OBTAIN ALL THE PARAMETERS FROM COMCOT.CTL;
--- !	  #. START_TYPE =
--- !				0: COLD START (SIMULATION STARTS FROM T = 0)
--- !				1: HOT START (SIMULATION STARTS FROM RESUMING TIME)
--- !				20: COLD START WITH TIDE LEVEL ADJUSTMENT
--- !				21: HOT START WITH TIDE LEVEL ADJUSTMENT
--- !	  #. INI_SURF =
--- !				0: USE FAULT MODEL TO DETERMINE SEAFLOOR DEFORMATION
--- !				1: USE DATA FILE TO DETERMINE INITIAL WATER SURFACE
--- !				2: USE INCIDENT WAVE MODEL TO GENERATE WAVES
--- !				3: USE TRANSIENT FLOOR MOTION MODEL (LANDSLIDE);
--- !				4: USE FAULT MODEL + LANDSLIDE;
--- !				   FAULT_MULTI.CTL IS REQUIRED FOR MULTI-FAULT SETUP;
--- !				9: USE MANSINHA AND SMYLIES' MODEL TO CALC DEFORMATION
--- !INPUT:
--- !	  #. COMCOT.CTL (AND FAULT_MULTI.CTL FOR MORE THAN ONE FAULT PLANE)
--- !OUTPUT:
--- !	  #. GENERAL INFORMAITON FOR A SIMULATION;
--- !      #. GRID SETUP;
 
 sectionRange:: [[Int]] -- General, Fault Model, Wave Maker, Landslide
 sectionRange = [[10..20],[25..40],[45..49],[54..59]]
 
-rootLayerRange :: [Int]
-rootLayerRange = [66..82]
-
-layersRange:: [[Int]]
-layersRange = [[n+2..n+17] | n <- [85,105..345]]
-
 getAllParameters:: String -> [[String]]
 getAllParameters content = map (extractSection content) sectionRange
 
+getFaultParameters:: String -> [String]
+getFaultParameters content = extractSection content faultLayerRange
+    where faultLayerRange = [25..40]
+
 getRootLayerParameters:: String -> [String]
 getRootLayerParameters content = extractSection content rootLayerRange
+    where rootLayerRange = [66..82]
 
 getChildLayersParameters:: String -> [[String]]
 getChildLayersParameters content = map (extractSection content) layersRange
+    where layersRange = [[n+2..n+17] | n <- [85,105..345]]
 
+getRootLayer:: String -> LayerConfig
+getRootLayer content = LayerConfig {
+        layswitch   = read $ head params,
+        laycord     = read $ params !! 1,
+        laygov      = read $ params !! 2,
+        dx          = read $ params !! 3,
+        dt          = read $ params !! 4,
+        fric_switch = read $ params !! 5,
+        fric_coef   = read $ params !! 6,
+        fluxswitch  = read $ params !! 7,
+        x_start     = read $ params !! 8,
+        x_end       = read $ params !! 9,
+        y_start     = read $ params !! 10,
+        y_end       = read $ params !! 11,
+        depth_name  = params !! 12,
+        fs          = read $ params !! 13,
+        layer_id    = read $ params !! 14,
+        level       = read $ params !! 15,
+        parent      = read $ params !! 16
+    }
+    where params = getRootLayerParameters content
+
+-- getFaultConfig:: String -> FaultConfig
+-- getFaultConfig content = FaultConfig {
+--         num_flt     :: Int,    
+--         hh          :: Double,    
+--         l           :: Double,
+--         w           :: Double,
+--         d           :: Double,
+--         th          :: Double,
+--         dl          :: Double,
+--         rd          :: Double,
+--         fault_xo    :: Double,
+--         fault_yo    :: Double,
+--         x0          :: Double,
+--         y0          :: Double,
+--         t0          :: Double,
+--         switch      :: Int,
+        
+--         fault_fs    :: Int,
+--         deform_name :: String
+--     }
+    -- where params = getRootLayerParameters content
 readComcotCtl:: IO()
 readComcotCtl = do
     content <- readFile "comcot.ctl"
     print $ getAllParameters content
-    print $ getRootLayerParameters content
+    print $ getRootLayer content
     print $ getChildLayersParameters content
 
 -- 2. GET_INI_SURF  (LOGIC)
