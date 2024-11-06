@@ -66,7 +66,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     0
  Coordinate System    (0:spherical, 1:cartesian):     0
- Governing Equations  (0:linear,    1:nonlinear):     1
  Grid Size  (dx, sph:minute, cart:meter)        :     0.5
  Time step                            ( second ):     1.0
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     1
@@ -87,7 +86,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     1
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     0
@@ -107,7 +105,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     0
@@ -127,7 +124,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -147,7 +143,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -167,7 +162,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -187,7 +181,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -207,7 +200,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -227,7 +219,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -247,7 +238,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -267,7 +257,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -287,7 +276,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -307,7 +295,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -327,7 +314,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -347,7 +333,6 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1

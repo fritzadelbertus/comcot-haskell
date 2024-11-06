@@ -3,7 +3,6 @@ module TypeModule where
 data LayerConfig = LayerConfig {
     layswitch   :: Int,
     laycord     :: Int,
-    laygov      :: Int,
     dx          :: Double,
     dt          :: Double,
     fric_switch :: Int,
@@ -21,23 +20,21 @@ data LayerConfig = LayerConfig {
 } deriving Show
 
 data FaultConfig = FaultConfig {
-    hh          :: Double,    
-    l           :: Double,
-    w           :: Double,
-    d           :: Double,
-    th          :: Double,
-    dl          :: Double,
-    rd          :: Double,
-    fault_xo    :: Double,
-    fault_yo    :: Double,
-    x0          :: Double,
-    y0          :: Double,
-    t0          :: Double,
-    switch      :: Int,
-    num_flt     :: Int,
-    fault_fs    :: Int,
-    deform_name :: String
-}
+    num_fault       :: Int,
+    rupture_time    :: Double,
+    switch          :: Int,
+    focal_depth     :: Double,    
+    fault_length    :: Double,
+    fault_width     :: Double,
+    dislocation     :: Double,
+    strike_angle    :: Double,
+    dip_angle       :: Double,
+    slip_angle      :: Double,
+    comp_origin_x   :: Double,
+    comp_origin_y   :: Double,
+    epicenter_x     :: Double,
+    epicenter_y     :: Double
+} deriving Show
 
 
 data Layer = Layer {
@@ -111,3 +108,19 @@ data Layer = Layer {
     pos         :: [[[Int]]],
     cxy         :: [[[Double]]]
 } deriving Show
+
+
+updateLayerZ:: [[[Double]]] -> Layer -> Layer
+updateLayerZ newZ layer = layer {z = newZ}
+
+updateLayerDz:: [[[Double]]] -> Layer -> Layer
+updateLayerDz newDz layer = layer {dz = newDz}
+
+updateLayerM:: [[[Double]]] -> Layer -> Layer
+updateLayerM newM layer = layer {m = newM}
+
+updateLayerN:: [[[Double]]] -> Layer -> Layer
+updateLayerN newN layer = layer {n = newN}
+
+updateLayerDeform:: [[Double]] -> Layer -> Layer
+updateLayerDeform newDeform layer = layer {deform = newDeform}

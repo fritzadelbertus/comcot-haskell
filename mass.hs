@@ -1,23 +1,13 @@
 import TypeModule
 import Constants
 
-updateLayerZ:: [[[Double]]] -> Layer -> Layer
-updateLayerZ newZ layer = layer {z = newZ}
-
-updateLayerDz:: [[[Double]]] -> Layer -> Layer
-updateLayerDz newDz layer = layer {dz = newDz}
-
 mass:: Layer -> Layer
 mass layer 
-    | isSpherical && isLinear       = massS layer
-    | isSpherical && isNonlinear    = conmassS layer
-    | isCartesian && isLinear       = massC layer
-    | isCartesian && isNonlinear    = conmassC layer
+    | isSpherical = massS layer
+    | isCartesian = massC layer
     where 
         isSpherical = laycord (layerConfig layer) == 0
         isCartesian = laycord (layerConfig layer) == 1
-        isLinear    = laygov (layerConfig layer) == 0
-        isNonlinear = laygov (layerConfig layer) == 1
 
 solveConS :: Layer -> Int -> Int -> Double
 solveConS l i j = prevFreeSurface - prevXFlux - prevYFlux
@@ -74,34 +64,3 @@ massC layer = updateLayerZ (nextLayer : z layer) layer
                 stillWaterDepth = h l !! i !! j
                 zz = solveConC l i j
                 dd = zz + stillWaterDepth
-
-conmass:: (Layer -> Int -> Int -> Double) -> Layer -> Layer
-conmass continuity layer = (updateLayerDz (nextLayerDz : dz layer) . updateLayerZ (nextLayerZ : z layer)) layer
-    where
-        lasty = lastYIndex layer
-        lastx = lastXIndex layer
-        nextLayerZ::[[Double]]
-        nextLayerZ = [[eta layer i j | i <- [1..lastx]] | j <- [1..lasty]]
-        eta l i j
-            | stillWaterDepth > elmax && abs zz < eps = zero
-            | stillWaterDepth > elmax && dd > gx = zz
-            | otherwise = - stillWaterDepth
-            where
-                stillWaterDepth = h l !! i !! j
-                zz = continuity l i j
-                dd = zz + stillWaterDepth
-        nextLayerDz::[[Double]]
-        nextLayerDz = [[eta2 layer i j | i <- [1..lastx]] | j <- [1..lasty]]
-        eta2 l i j
-            | stillWaterDepth > elmax && dd > gx = dd
-            | otherwise = zero
-            where
-                stillWaterDepth = h l !! i !! j
-                zz = continuity l i j
-                dd = zz + stillWaterDepth
-
-conmassC:: Layer -> Layer
-conmassC = conmass solveConC
-
-conmassS:: Layer -> Layer
-conmassS = conmass solveConS

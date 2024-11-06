@@ -1,23 +1,13 @@
 import TypeModule
 import Constants
 
-updateLayerM:: [[[Double]]] -> Layer -> Layer
-updateLayerM newM layer = layer {m = newM}
-
-updateLayerN:: [[[Double]]] -> Layer -> Layer
-updateLayerN newN layer = layer {n = newN}
-
 moment:: Layer -> Layer
 moment layer 
-    | isSpherical && isLinear       = momtS layer
-    | isSpherical && isNonlinear    = conmomtS layer
-    | isCartesian && isLinear       = momtC layer
-    | isCartesian && isNonlinear    = conmomtC layer
+    | isSpherical = momtS layer
+    | isCartesian = momtC layer
     where 
         isSpherical = laycord (layerConfig layer) == 0
         isCartesian = laycord (layerConfig layer) == 1
-        isLinear    = laygov (layerConfig layer) == 0
-        isNonlinear = laygov (layerConfig layer) == 1
 
 startMoment:: Layer -> Int
 startMoment l
@@ -90,33 +80,6 @@ solveMomNC l i j = prevMomentN - heightFactor
 
 momtC:: Layer -> Layer
 momtC layer = (updateLayerN (nextLayerN : n layer) . updateLayerM (nextLayerM : m layer)) layer
-    where
-        nextLayerM :: [[Double]]
-        nextLayerM = [[fluxM layer i j | i <- [start..lastMx]] | j <- [start..lastMy]]
-        lastMy = ny layer + 1
-        lastMx = nx layer
-        start = startMoment layer
-        fluxM l i j
-            | stillWaterDepth1 && stillWaterDepth2  && abs xm > eps = xm
-            | otherwise = zero
-            where
-                stillWaterDepth1 = h l !! i !! j > gx
-                stillWaterDepth2 = h l !! (i + 1) !! j > gx
-                xm = solveMomMC l i j
-        nextLayerN :: [[Double]]
-        nextLayerN = [[fluxN layer i j | i <- [start..lastNx]] | j <- [start..lastNy]]
-        lastNy = ny layer
-        lastNx = nx layer + 1
-        fluxN l i j
-            | stillWaterDepth1 > gx && stillWaterDepth2 > gx && abs xn > eps = xn
-            | otherwise = zero
-            where
-                stillWaterDepth1 = h l !! i !! j
-                stillWaterDepth2 = h l !! i !! (j + 1)
-                xn = solveMomNC l i j
-
-conmomtC:: Layer -> Layer
-conmomtC layer = (updateLayerN (nextLayerN : n layer) . updateLayerM (nextLayerM : m layer)) layer
     where
         nextLayerM :: [[Double]]
         nextLayerM = [[fluxM layer i j | i <- [start..lastMx]] | j <- [start..lastMy]]

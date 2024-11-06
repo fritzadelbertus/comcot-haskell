@@ -32,56 +32,53 @@ getRootLayerParameters content = extractSection content rootLayerRange
 
 getChildLayersParameters:: String -> [[String]]
 getChildLayersParameters content = map (extractSection content) layersRange
-    where layersRange = [[n+2..n+17] | n <- [85,105..345]]
+    where layersRange = [[n+2..n+16] | n <- [84,103..331]]
 
 getRootLayer:: String -> LayerConfig
 getRootLayer content = LayerConfig {
         layswitch   = read $ head params,
         laycord     = read $ params !! 1,
-        laygov      = read $ params !! 2,
-        dx          = read $ params !! 3,
-        dt          = read $ params !! 4,
-        fric_switch = read $ params !! 5,
-        fric_coef   = read $ params !! 6,
-        fluxswitch  = read $ params !! 7,
-        x_start     = read $ params !! 8,
-        x_end       = read $ params !! 9,
-        y_start     = read $ params !! 10,
-        y_end       = read $ params !! 11,
-        depth_name  = params !! 12,
-        fs          = read $ params !! 13,
-        layer_id    = read $ params !! 14,
-        level       = read $ params !! 15,
-        parent      = read $ params !! 16
+        dx          = read $ params !! 2,
+        dt          = read $ params !! 3,
+        fric_switch = read $ params !! 4,
+        fric_coef   = read $ params !! 5,
+        fluxswitch  = read $ params !! 6,
+        x_start     = read $ params !! 7,
+        x_end       = read $ params !! 8,
+        y_start     = read $ params !! 9,
+        y_end       = read $ params !! 10,
+        depth_name  = params !! 11,
+        fs          = read $ params !! 12,
+        layer_id    = read $ params !! 13,
+        level       = read $ params !! 14,
+        parent      = read $ params !! 15
     }
     where params = getRootLayerParameters content
 
--- getFaultConfig:: String -> FaultConfig
--- getFaultConfig content = FaultConfig {
---         num_flt     :: Int,    
---         hh          :: Double,    
---         l           :: Double,
---         w           :: Double,
---         d           :: Double,
---         th          :: Double,
---         dl          :: Double,
---         rd          :: Double,
---         fault_xo    :: Double,
---         fault_yo    :: Double,
---         x0          :: Double,
---         y0          :: Double,
---         t0          :: Double,
---         switch      :: Int,
-        
---         fault_fs    :: Int,
---         deform_name :: String
---     }
-    -- where params = getRootLayerParameters content
+getFaultConfig:: String -> FaultConfig
+getFaultConfig content = FaultConfig {
+        num_fault       = read $ head params,
+        rupture_time    = read $ params !! 1,
+        switch          = read $ params !! 2,
+        focal_depth     = read $ params !! 3,    
+        fault_length    = read $ params !! 4,
+        fault_width     = read $ params !! 5,
+        dislocation     = read $ params !! 6,
+        strike_angle    = read $ params !! 7,
+        dip_angle       = read $ params !! 8,
+        slip_angle      = read $ params !! 9,
+        comp_origin_x   = read $ params !! 10,
+        comp_origin_y   = read $ params !! 11,
+        epicenter_x     = read $ params !! 12,
+        epicenter_y     = read $ params !! 13
+    }
+    where params = getFaultParameters content
 readComcotCtl:: IO()
 readComcotCtl = do
     content <- readFile "comcot.ctl"
     print $ getAllParameters content
     print $ getRootLayer content
+    print $ getFaultConfig content
     print $ getChildLayersParameters content
 
 -- 2. GET_INI_SURF  (LOGIC)
@@ -149,28 +146,5 @@ readFaultMultiCtl = do
 --     print $ layersRange
 --     print $ getChildLayersParameters content
 
--- main :: IO ()
+-- main :: IO () 
 -- main = do
-
--- 5. GET_LANDSLIDE_PARAMETERS
--- !DESCRIPTION:
--- !	  #. OBTAIN ADDITIONAL PARAMETERS FOR LANDSLIDE CONFIGURATION;
--- !	  #. THESE ADDITIONAL PARAMETERS ARE USED TO DETERMINE WATER DEPTH
--- !	     VARIATIONS VIA WATTS ET AL (2003)'S LANDSLIDE THEORY;
--- !	  #. LANDSLIDE.CTL IS REQUIRED IF THE OPTION IN LANDSLIDE SECTION
--- !		 IN COMCOT.CTL IS LARGER THAN 1
--- !INPUT:
--- !	  #. COMCOT.CTL AND LANDSLIDE.CTL IF REQUIRED;
--- !OUTPUT:
--- !	  #. ADDITIONAL LANDSLIDE PARAMETERS FOR LANDSLIDE CONFIGURATION;
-
-landslideRange:: [Int]
-landslideRange = [13..22]
-
-getLandSlideParameter:: String -> [String]
-getLandSlideParameter content = extractSection content landslideRange
-
-readLandslideCtl :: IO ()
-readLandslideCtl = do
-    content <- readFile "landslide.ctl"
-    print $ getLandSlideParameter content

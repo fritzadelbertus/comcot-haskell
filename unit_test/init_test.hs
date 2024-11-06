@@ -4,10 +4,10 @@ import Initialization
 main :: IO ()
 main = do
     -- print "READING COMCOT.CTL..."
-    -- readComcotCtl
+    readComcotCtl
     -- print "READING FAULT_MULTI.CTL"
     -- readFaultMultiCtl
     -- print "READING LANDSLIDE.CTL"
     -- readLandslideCtl
-    print (1 : [2])
+    -- print (1 : [2])
 
