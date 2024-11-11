@@ -1,8 +1,71 @@
 module TypeModule where
 
+data MiniLayer = MiniLayer {
+    hnx     :: Int,
+    hny     :: Int,
+    hx      :: [Double],
+    hy      :: [Double],
+    h       :: [[Double]],
+    hp      :: [[Double]],
+    hq      :: [[Double]],
+    hzCurr  :: [[Double]],
+    hzNext  :: [[Double]],
+    hmCurr  :: [[Double]],
+    hmNext  :: [[Double]],
+    hnCurr  :: [[Double]],
+    hnNext  :: [[Double]]
+} deriving Show
+
+updateMiniLayerH:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerH newH layer = layer {h = newH}
+
+updateMiniLayerHP:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHP newHP layer = layer {hp = newHP}
+
+updateMiniLayerHQ:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHQ newHQ layer = layer {hq = newHQ}
+
+updateMiniLayerHZCurr:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHZCurr newHZ layer = layer {hzCurr = newHZ}
+
+updateMiniLayerHZNext:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHZNext newHZ layer = layer {hzNext = newHZ}
+
+updateMiniLayerHMCurr:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHMCurr newHM layer = layer {hmCurr = newHM}
+
+updateMiniLayerHMNext:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHMNext newHM layer = layer {hmNext = newHM}
+
+updateMiniLayerHNCurr:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHNCurr newHN layer = layer {hnCurr = newHN}
+
+updateMiniLayerHNNext:: [[Double]] -> MiniLayer -> MiniLayer
+updateMiniLayerHNNext newHN layer = layer {hnNext = newHN}
+
+data Bathymetry = Bathymetry {
+    bx  :: [Double],
+    by  :: [Double],
+    bz  :: [[Double]],
+    bnx :: Int,
+    bny :: Int
+}
+
+data GeneralConfig = GeneralConfig {
+    total_time          :: Double,
+    time_interval       :: Double,
+    output_option       :: Int,
+    start_type          :: Int, 
+    start_time          :: Double,
+    height_limit        :: Double,
+    initial_surface     :: Int,
+    boundary_condition  :: Int
+} deriving Show
+
 data LayerConfig = LayerConfig {
     layswitch   :: Int,
     laycord     :: Int,
+    laygov      :: Int,
     dx          :: Double,
     dt          :: Double,
     fric_switch :: Int,
@@ -18,6 +81,9 @@ data LayerConfig = LayerConfig {
     level       :: Int,
     parent      :: Int
 } deriving Show
+
+updateLayerConfigDt:: Double -> LayerConfig -> LayerConfig
+updateLayerConfigDt newDt config = config {dt = newDt}
 
 data FaultConfig = FaultConfig {
     num_fault       :: Int,
@@ -45,11 +111,7 @@ data Layer = Layer {
     z               :: [[[Double]]],    -- Free surface elevation
     m               :: [[[Double]]],    -- Volume flux component x 
     n               :: [[[Double]]],    -- Volume flux component y
-    h               :: [[Double]],      -- Still water depth (no change)
     ht              :: [[[Double]]],    -- Transient water depth at T = N*DT and T = (N+1)*DT
-    hp              :: [[Double]],      -- Still water depth
-    hq              :: [[Double]],      -- Still water depth
-    dh              :: [[[Double]]],    -- Sediment transport
     dz              :: [[[Double]]],    -- Total water depth, for moving boundary
     r1              :: [[Double]],      -- Coefficients for spherical coor
     r2              :: [[Double]],
@@ -106,7 +168,8 @@ data Layer = Layer {
     upz         :: Bool,
     sc_option   :: Int,
     pos         :: [[[Int]]],
-    cxy         :: [[[Double]]]
+    cxy         :: [[[Double]]],
+    children    :: [Layer]
 } deriving Show
 
 
@@ -124,3 +187,25 @@ updateLayerN newN layer = layer {n = newN}
 
 updateLayerDeform:: [[Double]] -> Layer -> Layer
 updateLayerDeform newDeform layer = layer {deform = newDeform}
+
+updateLayerNx:: Int -> Layer -> Layer
+updateLayerNx newNx layer = layer {nx = newNx}
+
+updateLayerNy:: Int -> Layer -> Layer
+updateLayerNy newNy layer = layer {ny = newNy}
+
+updateLayerX:: [Double] -> Layer -> Layer
+updateLayerX newX layer = layer {x = newX}
+
+updateLayerY:: [Double] -> Layer -> Layer
+updateLayerY newY layer = layer {y = newY}
+
+updateLayerXO:: Double -> Layer -> Layer
+updateLayerXO newXO layer = layer {xo = newXO}
+
+updateLayerYO:: Double -> Layer -> Layer
+updateLayerYO newYO layer = layer {yo = newYO}
+
+updateLayerChildren:: [Layer] -> Layer -> Layer
+updateLayerChildren newChildren layer = layer {children = newChildren}
+

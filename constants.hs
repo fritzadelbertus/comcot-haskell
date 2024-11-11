@@ -1,4 +1,5 @@
 module Constants where
+import TypeModule (LayerConfig(LayerConfig))
 
 elmax :: Double
 elmax = -50.0
@@ -35,3 +36,9 @@ radDeg = 0.01745329252
 
 radMin :: Double
 radMin = 0.000290888208665721
+
+tideLevel :: Double
+tideLevel = 0.0
+
+ub:: Double
+ub = 99.0

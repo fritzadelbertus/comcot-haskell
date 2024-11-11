@@ -3,12 +3,11 @@ import TypeModule
 import Constants
 import Helper
 
-deformOkada:: Layer -> FaultConfig -> Layer
-deformOkada layer fault = updateLayerDeform okadaDeform layer
+deformOkada:: MiniLayer -> LayerConfig -> FaultConfig -> [[Double]]
+deformOkada layer layConfig fault = [[eta layer i j | i <- [1..lastx]] | j <- [1..lasty]]
     where 
-        okadaDeform = [[eta layer i j | i <- [1..lastx]] | j <- [1..lasty]]
-        lastx = nx layer
-        lasty = ny layer
+        lastx = hnx layer
+        lasty = hny layer
         eta l i j = us + ud
             where 
                 angL = radDeg*dip_angle fault
@@ -18,17 +17,17 @@ deformOkada layer fault = updateLayerDeform okadaDeform layer
                 hh = focal_depth fault + 0.5*fault_width fault*sin angL
                 delx = 0.5*fault_width fault*cos angL * cos angT
                 dely = 0.5*fault_width fault*cos angL * sin angT
-                projXS = fst $ stereoProjection (x l !! i) (y l !! j) (epicenter_x fault) (epicenter_y fault)
-                projYS = snd $ stereoProjection (x l !! i) (y l !! j) (epicenter_x fault) (epicenter_y fault)
+                projXS = fst $ stereoProjection (hx l !! i) (hy l !! j) (epicenter_x fault) (epicenter_y fault)
+                projYS = snd $ stereoProjection (hx l !! i) (hy l !! j) (epicenter_x fault) (epicenter_y fault)
                 projXC = fst $ stereoProjection (comp_origin_x fault) (comp_origin_y fault) (epicenter_x fault) (epicenter_y fault)
                 projYC = snd $ stereoProjection (comp_origin_x fault) (comp_origin_y fault) (epicenter_x fault) (epicenter_y fault)
-                xx = dx (layerConfig layer) * (fromIntegral i - 1.0)
-                yy = dy layer * (fromIntegral j - 1.0)
+                xx = dx layConfig * (fromIntegral i - 1.0)
+                yy = dx layConfig * (fromIntegral j - 1.0)
                 xShift
-                    | laycord (layerConfig l) == 0 = projXS - delx
+                    | laycord layConfig == 0 = projXS - delx
                     | otherwise = xx - projXC - delx
                 yShift
-                    | laycord (layerConfig l) == 0 = projYS - dely
+                    | laycord layConfig == 0 = projYS - dely
                     | otherwise = yy - projYC - dely
                 us
                     | abs usT2 <= gx = zero
