@@ -16,6 +16,11 @@ data MiniLayer = MiniLayer {
     hnNext  :: [[Double]]
 } deriving Show
 
+
+
+updateMiniLayer:: (a -> MiniLayer -> MiniLayer) -> a -> MiniLayer -> MiniLayer
+updateMiniLayer fieldSetter = fieldSetter 
+
 updateMiniLayerH:: [[Double]] -> MiniLayer -> MiniLayer
 updateMiniLayerH newH layer = layer {h = newH}
 

@@ -8,7 +8,7 @@
 # General Parameters for Simulation             : Value Field                  |
 #===============================================:===============================
 #Job Description: NZ30sec bathymetry, Spherical Coordinates for code testing
- Total run time (Wall clock, seconds)           :  7200.000
+ Total run time (Wall clock, seconds)           :   60.000
  Time interval to Save Data    ( unit: sec )    :    60.0
  Output Zmax & TS (0-Max Z;1-Timeseries;2-Both) :     2
  Start Type (0-Cold start; 1-Hot start)         :     0
@@ -24,19 +24,19 @@
 # Parameters for Fault Model (Segment 01)       :Values                        |
 #===============================================:===============================
  No. of FLT Planes (With fault_multi.ctl if >1) :   1
- Fault Rupture Time (seconds)                   :   60.0
+ Fault Rupture Time (seconds)                   :   0.0
  Faulting Option (0: Model; 1- Data;)           :   0
- Focal Depth                             (meter):   30000.000
- Length of source area                   (meter):  100000.000
- Width of source area                    (meter):   50000.000
- Dislocation of fault plate              (meter):       5.000
- Strike direction (theta)               (degree):     270.000
- Dip  angle       (delta)               (degree):      30.000
- Slip angle       (lamda)               (degree):      10.000
- Origin of Comp. Domain (Layer 01) (Lat, degree): -2.5
- Origin of Comp. Domain (Layer 01) (Lon, degree): 100.5
- Epicenter: Latitude                    (degree): -3.0
- Epicenter: Longitude                   (degree): 100.0
+ Focal Depth                             (meter):    5000.000
+ Length of source area                   (meter):   20000.000
+ Width of source area                    (meter):   10000.000
+ Dislocation of fault plate              (meter):       2.000
+ Strike direction (theta)               (degree):      90.000
+ Dip  angle       (delta)               (degree):      20.000
+ Slip angle       (lamda)               (degree):      90.000
+ Origin of Comp. Domain (Layer 01) (Lat, degree): -6.0
+ Origin of Comp. Domain (Layer 01) (Lon, degree): 105.0
+ Epicenter: Latitude                    (degree): -6.0
+ Epicenter: Longitude                   (degree): 105.0
  File Name of Deformation Data                  :comcot_ini.dep
  Data Format Option (0-COMCOT; 1-MOST; 2-XYZ)   :     2
 
@@ -65,17 +65,18 @@
 # Parameters for 1st-level grid -- layer 01     :Values                        |
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     0
- Coordinate System    (0:spherical, 1:cartesian):     0
- Grid Size  (dx, sph:minute, cart:meter)        :     0.5
+ Coordinate System    (0:spherical, 1:cartesian):     1
+ Governing Equations  (0:linear,    1:nonlinear):     0
+ Grid Size  (dx, sph:minute, cart:meter)        :     1.0
  Time step                            ( second ):     1.0
- Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     1
- Manning's Roughness Coef. (For fric.option=0)  :     0.013
- Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
- X_start                                        :  98.5041666666666629
- X_end                                          :  101.995833333333337
- Y_Start                                        :  -5.99583333333333357
- Y_end                                          :  -2.00416666666666687
- File Name of Bathymetry Data                   :mentawaio.xyz
+ Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
+ Manning's Roughness Coef. (For fric.option=0)  :     0.025
+ Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     0
+ X_start                                        :  0
+ X_end                                          :  9
+ Y_Start                                        :  0
+ Y_end                                          :  9
+ File Name of Bathymetry Data                   :bath.xyz
  Data Format Option (0-OLD;1-MOST;2-XYZ;3-ETOPO):     2
  Grid Identification Number                     :    01
  Grid Level                                     :     1
@@ -86,15 +87,16 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
- Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     1
- Manning's Roughness Coef. (For fric.option=0)  :     0.013
- Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
+ Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
+ Manning's Roughness Coef. (For fric.option=0)  :     0.025
+ Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
  GridSize Ratio of Parent layer to current layer:     2
- X_start                                        :   98.5
- X_end                                          :   102.0
- Y_start                                        :   -6.0
- Y_end                                          :   -2.0
- FileName of Water depth data                   :mentawaio.xyz
+ X_start                                        :  99.5041666666666629
+ X_end                                          :  102.49
+ Y_Start                                        :  -3.99583333333333313
+ Y_end                                          :  -1.00416666666666665
+ FileName of Water depth data                   :mentawaio2.xyz
  Data Format Option (0-OLD;1-MOST;2-XYZ;3-ETOPO):     2
  Grid Identification Number                     :    02
  Grid Level                                     :     2
@@ -105,15 +107,16 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
- Manning's Roughness Coef. (For fric.option=0)  :     0.013
+ Manning's Roughness Coef. (For fric.option=0)  :     0.025
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     0
- GridSize Ratio of Parent layer to current layer:     4
- X_start                                        :  98.5
- X_end                                          :  102.0
- Y_start                                        :   -6.0
- Y_end                                          :   -2.0
- FileName of Water depth data                   :mentawaio.xyz
+ GridSize Ratio of Parent layer to current layer:     2
+ X_start                                        :  99.51
+ X_end                                          :  100.997916666666669
+ Y_start                                        :   -3.49791666666666679
+ Y_end                                          :   -2.00208333333333321
+ FileName of Water depth data                   :mentawaio3.xyz
  Data Format Option (0-OLD;1-MOST;2-XYZ;3-ETOPO):     2
  Grid Identification Number                     :    03
  Grid Level                                     :     3
@@ -124,16 +127,17 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
- Manning's Roughness Coef. (For fric.option=0)  :     0.013
- Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
- GridSize Ratio of Parent layer to current layer:     16
- X_start                                        :   120.6354616225919
- X_end                                          :   120.9234496509648
- Y_start                                        :    21.84426599282262
- Y_end                                          :    22.21347088069079
- FileName of Water depth data                   :  etopo_indo.nc
- Data Format Option (0-OLD;1-MOST;2-XYZ;3-ETOPO):     3
+ Manning's Roughness Coef. (For fric.option=0)  :     0.025
+ Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     0
+ GridSize Ratio of Parent layer to current layer:     2
+ X_start                                        :   101.002083333333331
+ X_end                                          :   102.48
+ Y_start                                        :    -3.99
+ Y_end                                          :    -2.00208333333333321
+ FileName of Water depth data                   :mentawaio4.xyz
+ Data Format Option (0-OLD;1-MOST;2-XYZ;3-ETOPO):     2
  Grid Identification Number                     :    04
  Grid Level                                     :     3
  Parent Grid's ID Number                        :    02
@@ -143,6 +147,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -162,6 +167,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -181,6 +187,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -200,6 +207,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -219,6 +227,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -238,6 +247,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -257,6 +267,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -276,6 +287,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -295,6 +307,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -314,6 +327,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1
@@ -333,6 +347,7 @@
 #===============================================:===============================
  Run This Layer ?       (0:Yes,       1:No     ):     1
  Coordinate           (0:spherical, 1:cartesian):     0
+ Governing Eqn.       (0:linear,    1:nonlinear):     1
  Bottom Friction Switch? (0:Yes,1:No,2:var. n ) :     0
  Manning's Roughness Coef. (For fric.option=0)  :     0.013
  Layer Ouput Option? (0:Z+Hu+Hv;1:Z Only;2:NONE):     1

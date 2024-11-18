@@ -190,27 +190,6 @@
 				HM = L%HP(I,J)+0.5*(L%Z(I,J,2)+L%Z(IP1,J,2))
 				XM = L%M(I,J,1)-L%GRX*HM*(L%Z(IP1,J,2)-L%Z(I,J,2))
 !...........USE BOTTOM FRICTION
-				IF (L%FRIC_SWITCH.NE.1) THEN
-					IF (L%FRIC_SWITCH .EQ. 2) FM = L%FRIC_VCOEF(I,J)
-					XQQ = 0.25*(L%N(I,J,1) + L%N(IP1,J,1)			&
-								+ L%N(I,JM1,1) + L%N(IP1,JM1,1))
-!					DF = 0.5*(L%H(I,J)+L%H(IP1,J))
-					IF (HM.GE.1.0E-3) THEN
-						FF = CONST*FM*FM*SQRT(L%M(I,J,1)**2			&
-										+ XQQ**2)/HM**(2.3333333)
-					ELSE
-						FF = 0.0
-					ENDIF
-					XM = XM - FF*L%M(I,J,1)
-				ENDIF
-				IF (L%MODSCM .EQ. 0) THEN
-					SCM = L%GRX*TWLVTH*HM*((L%Z(IP1,JP1,2)			&
-								- 2*L%Z(IP1,J,2)+L%Z(IP1,JM1,2))	&
-								- (L%Z(I,JP1,2)-2*L%Z(I,J,2)		&
-								+ L%Z(I,JM1,2)))
-					XM = XM - SCM
-				ENDIF
-				IF (L%FRIC_SWITCH.NE.1) XM = XM/(1.+FF)
 				IF (ABS(XM) .LT. EPS) XM = ZERO
 				L%M(I,J,2) = XM
 			ELSE
@@ -233,29 +212,6 @@
 				HN = L%HQ(I,J)+0.5*(L%Z(I,J,2)+L%Z(I,JP1,2))
 				XN = L%N(I,J,1)-L%GRY*HN*(L%Z(I,JP1,2)-L%Z(I,J,2))
 !...........USE BOTTOM FRICTION
-				IF (L%FRIC_SWITCH.NE.1) THEN
-					IF (L%FRIC_SWITCH .EQ. 2) FM = L%FRIC_VCOEF(I,J)
-					XPP = 0.25*(L%M(I,J,1) + L%M(I,JP1,1)			&
-								+ L%M(IM1,J,1) + L%M(IM1,JP1,1))
-!					DF = 0.5*(L%H(I,J)+L%H(I,JP1))
-					IF (HN.GE.1.0E-5) THEN
-						FF = CONST*FM*FM*SQRT(L%N(I,J,1)**2			&
-										+ XPP**2)/HN**(2.3333333)
-					ELSE
-						FF = 0.0
-					ENDIF
-					XN = XN - FF*L%N(I,J,1)
-				ENDIF
-
-				IF (L%MODSCM .EQ. 0) THEN
-					SCM = L%GRY*TWLVTH*HN*((L%Z(IP1,JP1,2)			&
-								- 2.*L%Z(I,JP1,2)+L%Z(IM1,JP1,2))	&
-			                    - (L%Z(IP1,J,2)-2.*L%Z(I,J,2)		&
-								+ L%Z(IM1,J,2)))
-					XN = XN - SCM
-				ENDIF
-
-				IF (L%FRIC_SWITCH.NE.1) XN = XN/(1.0+FF)
 				IF (ABS(XN) .LT. EPS) XN = ZERO
 				L%N(I,J,2) = XN
 			ELSE
@@ -456,16 +412,6 @@
 
 !.....>>COMPUTE LINEAR PART IN NONLINEAR MOMENTUM EQUATION<<....
 			XP = P(I,J,1) - GRX*DD*(Z(IP1,J,2)-Z(I,J,2))
-!!7!->  MODIFIED OR OLD SCHEME FOR MOMENTUM EQUATION
-			IF (MOD_SCM.EQ.0 .AND. J.LT.JY) THEN
-				SCM = GRX*DD/12.									&
-						*((Z(IP1,JP1,2)-2*Z(IP1,J,2)+Z(IP1,JM1,2))	&
-						-(Z(I,JP1,2)-2*Z(I,J,2)+Z(I,JM1,2)))
-				XP = XP - SCM
-			ENDIF
-
-			IF (IFRIC .NE. 1) XP = XP - FF*P(I,J,1)
-!!7! <-
 
 !.....>>COMPUTE CONVECTION TERMS IN NONLINEAR MOMENTUM EQUATION<<...
 			IF (LIN_CHK.EQ.1 .AND. DP(I,J,1).GE.GX .AND.			&
@@ -654,12 +600,6 @@
 !...........SOLVE LINEAR VERSION OF MOMENTUM EQUATION IN Y DIRECTION
 			XQ = Q(I,J,1) - GRY*DD*(Z(I,JP1,2)-Z(I,J,2))
 !!7!->  MODIFIED OR OLD SCHEME FOR MOMENTUM EQUATION
-			IF (MOD_SCM .EQ. 0 .AND. I.LT.IX) THEN
-				SCM = GRY  * DD / 12.								&
-					*((Z(IP1,JP1,2)-2*Z(I,JP1,2)+Z(IM1,JP1,2))		&
-					-(Z(IP1,J,2)-2*Z(I,J,2)+Z(IM1,J,2)))
-				XQ = XQ - SCM
-			ENDIF
 
 			IF (IFRIC .NE. 1) XP = XP - FF*Q(I,J,1)
 

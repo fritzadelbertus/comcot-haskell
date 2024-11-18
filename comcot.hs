@@ -2,6 +2,7 @@ import Initialization
 import TypeModule
 import Mass
 import Moment
+import Boundary
 
 change:: MiniLayer -> MiniLayer
 change l = (updateMiniLayerHNCurr (hnNext l) . updateMiniLayerHMCurr (hmNext l). updateMiniLayerHZCurr (hzNext l)) l
@@ -21,14 +22,16 @@ main = do
     faultConfig <- readFaultConfig "comcot.ctl"         -- Initialization.hs
     initialLayer <- getInitialLayer initlayConfig           -- Initialization.hs
     let initdeformLayer = getInitialSurface initialLayer initlayConfig faultConfig -- Initialization.hs
+    print initdeformLayer
     let adjustedBLayer = adjustBathymetry initdeformLayer  -- Initialization.hs
     let layConfig = checkCourantCondition adjustedBLayer initlayConfig
     -- sphericalParameters
     let istart = 1
     let time = 0.0
     let kEnd = round (total_time generalConfig/dt layConfig)
-    print adjustedBLayer
-    print layConfig
+    -- print $ h initdeformLayer
+    -- print $ hny initdeformLayer
+    -- print $ hnx initdeformLayer
     let lastOutput = iterateComcot istart kEnd time adjustedBLayer layConfig faultConfig
     print lastOutput
     -- screenDisplay

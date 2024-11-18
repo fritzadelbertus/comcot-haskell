@@ -51,20 +51,22 @@ lastXIndex l
 --                 stillWaterDepth = h l !! i !! j
 --                 zz = solveConS l i j
 
+freeSurfaceC:: MiniLayer -> LayerConfig -> Int -> Int -> Double
+freeSurfaceC l c i j
+    | i == 0 || j == 0 = hzCurr l !! i !! j
+    | stillWaterDepth > gx && abs zz < eps = zero
+    | stillWaterDepth > gx && dd < eps = - stillWaterDepth
+    | stillWaterDepth > gx = zz
+    | otherwise = zero
+    where
+        stillWaterDepth = h l !! i !! j
+        zz = solveConC l c i j
+        dd = zz + stillWaterDepth
+
 massC:: MiniLayer -> LayerConfig -> MiniLayer
 massC layer layConfig = updateMiniLayerHZNext nextLayer layer
     where
-        nextLayer :: [[Double]]
-        nextLayer = [[eta layer i j | i <- [0..lasty]] | j <- [0..lastx]]
+        nextLayer = [[freeSurfaceC layer layConfig i j | i <- [0..lasty]] | j <- [0..lastx]]
         lasty = hny layer - 1
         lastx = hnx layer - 1
-        eta l i j
-            | i == 0 || j == 0 = hzCurr l !! i !! j
-            | stillWaterDepth > gx && abs zz < eps = zero
-            | stillWaterDepth > gx && dd < eps = - stillWaterDepth
-            | stillWaterDepth > gx = zz
-            | otherwise = zero
-            where
-                stillWaterDepth = h l !! i !! j
-                zz = solveConC l layConfig i j
-                dd = zz + stillWaterDepth
+            

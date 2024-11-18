@@ -108,8 +108,12 @@ dxCalc layConfig = MiniLayer {
         h = [[]],
         hp = [[]],
         hq = [[]],
-        hzCurr = [[]],
-        hzNext = [[]]
+        hzCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hzNext = [[]],
+        hmCurr = [[]],
+        hmNext = [[]],
+        hnCurr = [[]],
+        hnNext = [[]]
     }
     where
         nx = findNxy layConfig x_start x_end
@@ -142,17 +146,16 @@ gridInterpolate miniLayer layBath = updateMiniLayerH newH miniLayer
         xArr = bx layBath
         yArr = by layBath
         zArr = bz layBath
-        height i j 
-            | isBetweenInterpolation idxI idxJ nx ny = centerZ + rightZ + downZ + rightDownZ
-            | otherwise = 0.0
+        height i j = centerZ + rightZ + downZ + rightDownZ
+
             where 
                 indexI = findIndex (hx miniLayer !! i) xArr
                 indexJ = findIndex (hy miniLayer !! j) yArr
                 idxI
-                    | isNothing indexI = -1
+                    | isNothing indexI = hnx miniLayer -2
                     | otherwise = fromJust indexI
                 idxJ
-                    | isNothing indexJ = -1
+                    | isNothing indexJ = hny miniLayer -2
                     | otherwise = fromJust indexJ
                 centerZ = zArr !! idxI !! idxJ * (1.0-cx)*(1.0-cy)
                 rightZ = zArr !! (idxI+1) !! idxJ * cx * (1.0-cy)

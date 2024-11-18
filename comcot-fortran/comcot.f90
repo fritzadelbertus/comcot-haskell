@@ -201,17 +201,12 @@
 !///// ADJUST BATHYMETRY, TIME STEP AND CALC DEPENDENT PARAMETERS /////
 	  CALL ADJUST_BATHYMETRY (LO,LA)
 	  CALL CR_CHECK (LO,LA)
-	  CALL ALPHA_CALC (LO,LA)
 	  !CALCULATE PARAMETERS USED FOR SPHERICAL COORD.
       CALL SPHERICAL_PARAMETERS(LO,LA)
 
 !///// SET UP BOUNDARY CONDITIONS /////////////////////////////////////
 	  IF (BC_TYPE.EQ.1) CALL SPONGE_COEF (LO)
 	  IF (BC_TYPE.EQ.2) CALL BC_WALL (LO,WAVE_INFO)
-	  IF (BC_TYPE.EQ.3) THEN
-		WRITE(*,*) "ERROR, boundary type 3 is no longer supported"
-		STOP
-	  END IF
 
 !/////DETERMINE STARTING TIME STEP # //////////////////////////////////
 !      WRITE(*,*) START_STEP
@@ -297,32 +292,16 @@
             WRITE (*,'(I9,8X,F8.3)') K,T_MINUTES
          ENDIF
 
-!.... .. CALL HOT START FUNCTION
-         IF (K .EQ. START_STEP) THEN
-		    CALL HOT_START (LO,LA,START_TYPE,START_STEP)
-		 ENDIF
-!*		 ! CREATE 5 BACKUPS DURING THE ENTIRE SIMULATION DURATION
-!*		 IF (K.GT.1 .AND. MOD(K,FLOOR(KEND/5.)) .EQ. 0) THEN
-!*		    CALL HOT_START (LO,LA,0,K)
-!*		 ENDIF
 
 !....... CALL MULTIPLE FAULT PLANE MODEL
          IF (INI_SURF .EQ. 0 .OR. INI_SURF .EQ. 4) THEN
 		    CALL GET_FLOOR_DEFORM (LO,LA,FAULT_INFO,TIME)
 		 ENDIF
 !... ...CALL LANDSLIDE MODEL
-		 IF ( INI_SURF .EQ. 3 .OR. INI_SURF .EQ. 4 ) THEN
-		    IF ( TIME.GE.LANDSLIDE_INFO%T(1) .AND.					&
-		         TIME.LE.LANDSLIDE_INFO%T(LANDSLIDE_INFO%NT) ) THEN
-		       CALL LAND_SLIDE(LO,LANDSLIDE_INFO,TIME)
-		    ENDIF
-	     ENDIF
+
 
 !////////SOLVE MASS CONSERVATION EQN FOR LAYER 1 (THE OUTEST LAYER)
          !!....CALL SEDIMENT TRANSPORT MODEL
-         IF (LO%LAYCORD.NE.0 .AND. LO%SEDI_SWITCH .EQ. 0) THEN
-		    CALL SED_TRANSPORT (LO)
-		 ENDIF
 
 		 CALL MASS (LO)
 
@@ -330,17 +309,8 @@
          CALL OPEN (LO)
 
 !.......CALL WAVE MAKER TO GENERATE WAVES
-         IF (INI_SURF .EQ. 2) THEN
-            CALL WAVE_MAKER (TIME,LO,WAVE_INFO)
-		 ENDIF
 
 !.......APPLY FACTS INPUT CONDITION
-         IF (BC_TYPE.EQ.3) THEN
-		    IF (TIME.GE.BCI_INFO%T(1) .AND. 						&
-							TIME.LT.BCI_INFO%T(BCI_INFO%NT)) THEN
-		       CALL BC_INPUT (BCI_INFO,LO,TIME)
-			ENDIF
-		 ENDIF
 !//////////////////////////////////////////////////////////////////////
 !        CALL SUBLAYER COUPLED MODEL
 !//////////////////////////////////////////////////////////////////////
@@ -743,108 +713,3 @@
       RETURN
       END
 
-
-!----------------------------------------------------------------------
-      SUBROUTINE SED_TRANSPORT (LO)
-!.....TENTATIVE TRY TO INCLUDING SEDIMENT TRANSPORT MODEL (APR. 2007)
-!     SEDIMENT FLUX IS COMPUTED ACCORDING TO RIBBERINK (1998)
-!----------------------------------------------------------------------
-      USE LAYER_PARAMS
-	  TYPE (LAYER) :: LO
-	  REAL D, DS, THETA_C, THETA_P,THETA_Q,G,RHO,RHO_S
-	  REAL H(LO%NX,LO%NY),DH(LO%NX,LO%NY)
-	  REAL QX(LO%NX,LO%NY),QY(LO%NX,LO%NY)
-	  CHARACTER(LEN=30) FNAME
-
-	  G = 9.807
-	  RHO = 1000.0
-	  RHO_S = 2650.0
-	  DS = 0.0002
-	  POROSITY = 0.3
-	  THETA_C = 0.04
-	  S = RHO_S/RHO
-
-!	  Q(:,:) = 0.0
-	  QX(:,:) = 0.0
-	  QY(:,:) = 0.0
-
-!      H(:,:) = -LO%H(:,:)
-	  DH(:,:) = LO%H(:,:) + LO%Z(:,:,1)
-
-	  DO I = 1,LO%NX
-	     IM1 = I-1
-		 IP1 = I+1
-		 IF (IM1.LE.0) IM1=1
-		 IF (IP1.GE.LO%NX) IP1=LO%NX
-
-	     DO J = 1,LO%NY
-		 	JM1 = J-1
-		    JP1 = J+1
-		    IF (JM1.LE.1) JM1=1
-		    IF (JP1.GE.LO%NY) JP1=LO%NY
-			!TOTAL WATER DEPTH AT DISCHARGE LOCATION P
-            HP = 0.5*(DH(I,J)+DH(IP1,J))
-			!TOTAL WATER DEPTH AT DISCHARGE LOCATION Q
-			HQ = 0.5*(DH(I,J)+DH(I,JP1))
-
-			!SEDIMENT FLUX AT DISCHARGE LOCATION P
-		    IF (HP .GT. 0.05) THEN
-		       COEF_P = RHO*G*(LO%FRIC_COEF**2)/(HP**2.33333)
-			   !Y COMPONENT OF VOLUME FLUX AT DISCHARGE LOCATION P
-			   XQQ = 0.25*(LO%N(I,J,1)+LO%N(IP1,J,1)				&
-						+ LO%N(I,JM1,1)+LO%N(IP1,JM1,1))
-			   !TOTAL VOLUME FLUX AT DISCHARGE LOCATION P
-			   FLUX_P = SQRT(LO%M(I,J,1)**2+XQQ**2)
-			   !X COMPONENT OF BOTTOM SHEAR STRESS AT DISCHARGE LOCATION P
-               TPX = COEF_P*LO%M(I,J,1)*FLUX_P
-			   !Y COMPONENT OF BOTTOM SHEAR STRESS AT DISCHARGE LOCATION P
-               TPY = COEF_P*XQQ*FLUX_P
-			   ! TOTAL SHEAR STRESS AT DISCHARGE LOCATION P
-			   TPB = SQRT(TPX**2+TPY**2)
-			   !SHIELDS PARAMETER AT DISCHARGE LOCATION P
-			   THETA_P = TPB/((RHO_S-RHO)*G*DS)
-			   IF (THETA_P .GT. THETA_C) THEN
-				  !RIBBERINK (1998)
-			      QS_P = 11.0*SQRT((S-1.0)*G*DS**3)					&
-							* ((THETA_P-THETA_C)**1.65)
-				  IF (QS_P.GT.0.02) QS_P = 0.02
-				  !X COMPONENT OF SAND FLUX AT DISCHARGE LOCATION P
-				  IF (FLUX_P .GT. 1.0E-10)							&
-							QX(I,J) = QS_P * LO%M(I,J,1)/FLUX_P
-			   ENDIF
-			ENDIF
-
-			!SEDIMENT FLUX AT DISCHARGE LOCATION Q
-            IF (HQ .GT. 0.05) THEN
-		       COEF_Q = RHO*G*(LO%FRIC_COEF**2)/(HQ**2.33333)
-			   XPP = 0.25*(LO%M(I,J,1)+LO%M(I,JP1,1)+LO%M(IM1,J,1)	&
-							+ LO%M(IM1,JP1,1))
-			   FLUX_Q = SQRT(XPP**2+LO%N(I,J,1)**2)
-               TQX = COEF_Q*XPP*FLUX_Q
-               TQY = COEF_Q*LO%N(I,J,1)*FLUX_Q
-			   TQB = SQRT(TQX**2+TQY**2)
-			   THETA_Q = TQB/((RHO_S-RHO)*G*DS)
-			   IF (THETA_Q .GT. THETA_C) THEN
-			      !RIBBERINK (1998)
-			      QS_Q = 11.0*SQRT((S-1.0)*G*DS**3)					&
-							*((THETA_Q-THETA_C)**1.65)
-				  IF (QS_Q.GT.0.02) QS_Q = 0.02
-				  IF (FLUX_Q .GT. 1.0E-10)							&
-							QY(I,J) = QS_Q*LO%N(I,J,1)/FLUX_Q
-			   ENDIF
-
-            ENDIF
-         ENDDO
-      ENDDO
-
-      DO I = 2,LO%NX-1
-	     DO J = 2,LO%NY-1
-		    LO%DH(I,J,2) = LO%DH(I,J,1)-LO%RX*(1/(1-POROSITY))		&
-							*(QX(I,J)-QX(I-1,J)+QY(I,J)-QY(I,J-1))
-         ENDDO
-	  ENDDO
-      LO%H(:,:) = LO%H(:,:)-LO%DH(:,:,2)
-
-
-	  RETURN
-	  END
