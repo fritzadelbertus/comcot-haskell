@@ -1,7 +1,19 @@
 module Deform where
 import TypeModule
-import Constants
+    ( FaultConfig(fault_width, dip_angle, slip_angle, strike_angle,
+                  fault_length, focal_depth, dislocation, comp_origin_x,
+                  comp_origin_y, epicenter_x, epicenter_y),
+      LayerConfig(dx),
+      MiniLayer(hy, hx) )
+import Constants ( eps, gx, radDeg, zero )
 import Helper
+    ( generateLayerWithConfig,
+      isSpherical,
+      onResults1,
+      setToZeroIfNanOrInfinite )
+
+--------------------------------------------------
+-- Okada Model
 
 angleL :: FaultConfig -> Double
 angleL = (radDeg *) . dip_angle
@@ -88,6 +100,9 @@ okadaDisplacement fault l c i j = us + ud
 deformOkada:: MiniLayer -> LayerConfig -> FaultConfig -> [[Double]]
 deformOkada layer layConfig fault = generateLayerWithConfig layer layConfig (okadaDisplacement fault)
 
+--------------------------------------------------
+-- For Calculating strike slip and dip slip
+
 faultDBar:: Double -> Double -> Double -> Double -> Double -> Double
 faultDBar x2 y1 y2 dd = onResults1 (-) ((*) y2 . sin) (onResults1 (*) (faultQ x2 y1 y2 dd) cos)
 faultQ:: Double -> Double -> Double -> Double -> Double -> Double
@@ -118,6 +133,8 @@ dipSlip x2 y1 y2 dp dd = - ((dBar*q/r/(r+y1) + sin dp*atan (y1*y2/q/r) - a5*sin 
         a5 = 0.5*2/cos dp*atan ((y2*(xx+q*cos dp)+xx*(r+xx)*sin dp)/y1/(r+xx)/cos dp)
         xx = sqrt (y1**2 + q**2)
         
+--------------------------------------------------
+-- Stereo Projection formula
 
 stereoProjection:: Double -> Double -> Double -> Double -> (Double,Double)
 stereoProjection lonin latin lon0 lat0 = (calcX, calcY)

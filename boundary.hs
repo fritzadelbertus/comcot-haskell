@@ -1,6 +1,11 @@
 module Boundary where
 import TypeModule
-import Constants
+    ( updateMiniLayerHZNext,
+      MiniLayer(hzNext, hnNext, hmNext, h, hnx, hny) )
+import Constants ( grav, gx, ub, zero )
+
+--------------------------------------------------
+-- Formula for Open Boundary
 
 findUpperLeft:: MiniLayer -> Int -> Int -> Double
 findUpperLeft l i j
@@ -124,3 +129,6 @@ open layer = updateMiniLayerHZNext newHz layer
                 botBound = i == (hnx l - 1)
                 rightBound = j == (hny layer - 1)
                 leftBound = j == 0
+
+--------------------------------------------------
+-- Other formula not yet implemented

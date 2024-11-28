@@ -4,10 +4,60 @@ import Helper ( removeLeadingSpaces, isCartesian, generateLayerWithConfig, gener
 import Constants (eps, rEarth, radMin, radDeg, grav)
 import Data.List (transpose)
 import TypeModule
+    ( updateLayerConfigDt,
+      updateMiniLayerH,
+      updateMiniLayerHP,
+      updateMiniLayerHQ,
+      updateMiniLayerHZCurr,
+      Bathymetry(..),
+      FaultConfig(..),
+      GeneralConfig(..),
+      LayerConfig(..),
+      MiniLayer(..) )
 import Data.Maybe ( fromJust, isNothing )
 import Deform ( deformOkada )
 
---------------------------------------------------------
+
+--------------------------------------------------
+-- Main Functions
+
+readLayerConfig:: String -> IO LayerConfig
+readLayerConfig = readConfig getRootLayer
+
+readFaultConfig:: String -> IO FaultConfig
+readFaultConfig = readConfig getFaultConfig
+
+readGeneralConfig:: String -> IO GeneralConfig
+readGeneralConfig = readConfig getGeneralConfig
+
+getInitialLayer:: LayerConfig -> IO MiniLayer
+getInitialLayer layConfig = do
+    content <- readFile (depth_name layConfig)
+    let layBath = getBathymetryData content
+    let initLayer = dxCalc layConfig
+    return $ gridInterpolate initLayer layBath
+
+getInitialSurface:: MiniLayer -> LayerConfig -> FaultConfig -> IO MiniLayer
+getInitialSurface = getFloorDeform 0.0
+
+adjustBathymetry:: MiniLayer -> MiniLayer
+adjustBathymetry = updateHPQ
+
+checkCourantCondition:: MiniLayer -> LayerConfig -> LayerConfig
+checkCourantCondition layer layConfig = updateLayerConfigDt newDt layConfig 
+    where 
+        hMax = (maximum . (map maximum . h)) layer
+        courant = dt layConfig/courantCoef
+        courantCoef = deltaCourant layer layConfig/(sqrt grav*hMax)
+        newDt
+            | courant > courantLimit layConfig = courantLimit layConfig * courantCoef
+            | otherwise = dt layConfig
+
+--------------------------------------------------
+-- Extract Input from '.ctl'
+
+parameterIndent:: Int
+parameterIndent = 49
 
 sectionRange:: [[Int]] -- General, Fault Model, Wave Maker, Landslide
 sectionRange = [[10..20],[25..40],[45..49],[54..59]]
@@ -18,168 +68,6 @@ getAllParameters content = map (extractSection content) sectionRange
 getChildLayersParameters:: String -> [[String]]
 getChildLayersParameters content = map (extractSection content) layersRange
     where layersRange = [[n+2..n+16] | n <- [84,103..331]]
-
--------------------------------------------------------
-
-
-----------------------------
-bathymetryFileLength:: String -> Int
-bathymetryFileLength content = length (lines content)
-
-readBathData:: ([String]-> String) -> String -> [Double]
-readBathData index content = map (read . index . words) (lines content) 
-
-readBathDataX:: String -> [Double]
-readBathDataX = readBathData head
-
-readBathDataY:: String -> [Double]
-readBathDataY = readBathData (!! 1)
-
-readBathDataZ:: String -> [Double]
-readBathDataZ = readBathData (!! 2)
-
-isWrittenRowByRow:: [Double] -> [Double] -> Bool
-isWrittenRowByRow x y = xDiff > eps && yDiff < eps
-    where 
-        xDiff = abs (head x - x !! 1) 
-        yDiff = abs (head y - y !! 1)
-
-getBathyNXY:: [Double] -> Int -> Int
-getBathyNXY (x:xs) acc
-    | head xs > x = getBathyNXY xs acc + 1
-    | otherwise = acc
-
-getBathN:: ([Double],[Double]) -> Int -> (Int,Int)
-getBathN (x,y) nxy
-    | isWrittenRowByRow x y = (getBathyNXY x 1, round nxyfromRow)
-    | otherwise = (getBathyNXY y 1, round nxyfromCol)
-    where 
-        nxyfromRow = fromIntegral nxy/fromIntegral (getBathyNXY x 1)
-        nxyfromCol = fromIntegral nxy/fromIntegral (getBathyNXY y 1)
-
-generateXCoor:: [Double] -> [Double] -> Int -> Int -> [Double]
-generateXCoor bathDataX bathDataY nx ny
-    | isWrittenRowByRow bathDataX bathDataY = [bathDataX !! i | i <-[0..nx-1]]
-    | otherwise = [bathDataX !! (i*ny) | i <-[0..nx-1]]
-
-generateYCoor:: [Double] -> [Double] -> Int -> Int -> [Double]
-generateYCoor bathDataX bathDataY nx ny
-    | not (isWrittenRowByRow bathDataX bathDataY) = [bathDataY !! i | i <-[0..ny-1]]
-    | otherwise = [bathDataY !! (i*nx) | i <-[0..ny-1]]
-
-generateZCoor:: [Double] -> [Double] -> [Double] -> Int -> Int -> [[Double]]
-generateZCoor bathDataX bathDataY bathDataZ nx ny
-    | isWrittenRowByRow bathDataX bathDataY = transpose [take nx (drop (i*nx) bathDataZ) | i <-[0..ny-1]]
-    | otherwise = [take ny (drop (i*ny) bathDataZ) | i <-[0..nx-1]]
-
-getBathymetryData:: String -> Bathymetry
-getBathymetryData bathContent = Bathymetry {bx = x, by = y, bz = z, bnx = nx, bny = ny}
-    where
-        x = generateXCoor bathDataX bathDataY nx ny
-        y = generateYCoor bathDataX bathDataY nx ny
-        z = generateZCoor bathDataX bathDataY bathDataZ nx ny
-        bathDataX = readBathDataX bathContent
-        bathDataY = readBathDataY bathContent
-        bathDataZ = readBathDataZ bathContent
-        (nx,ny) = getBathN (bathDataX,bathDataY) nxy
-        nxy = bathymetryFileLength bathContent
-
---------------------------------------------------------------------------
-
-getInitSurfData:: String -> Bathymetry
-getInitSurfData bathContent = Bathymetry {bx = x, by = y, bz = z, bnx = nx, bny = ny}
-    where
-        x = generateXCoor bathDataX bathDataY nx ny
-        y = generateYCoor bathDataX bathDataY nx ny
-        z = generateZCoor bathDataX bathDataY bathDataZ nx ny
-        bathDataX = readBathDataX bathContent
-        bathDataY = readBathDataY bathContent
-        bathDataZ = readBathDataZ bathContent
-        (nx,ny) = getBathN (bathDataX,bathDataY) nxy
-        nxy = bathymetryFileLength bathContent
-
--------------------------------------------------------------------------
-
-
-
-findNxy:: LayerConfig -> (LayerConfig -> Double) -> (LayerConfig -> Double) -> Int
-findNxy layConfig start end
-    | isCartesian layConfig = cartN 
-    | otherwise = sphereN
-    where
-        cartN = 1 + round (distance/d)
-        sphereN = 1 + round (distance*60/d)
-        distance = end layConfig - start layConfig
-        d = dx layConfig
-
-dxCalc:: LayerConfig -> MiniLayer
-dxCalc layConfig = MiniLayer { 
-        hnx = nx, 
-        hny = ny, 
-        hx = [x_start layConfig + fromIntegral i*d | i <- [0..nx-1]], 
-        hy = [y_start layConfig + fromIntegral j*d | j <- [0..ny-1]], 
-        h = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
-        hp = [[]],
-        hq = [[]],
-        hzCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
-        hzNext = [[]],
-        hmCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
-        hmNext = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
-        hnCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
-        hnNext = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]]
-    }
-    where
-        nx = findNxy layConfig x_start x_end
-        ny = findNxy layConfig y_start y_end
-        d = dx layConfig
----------------------------------
-
-findIndex :: (Ord a) => a -> [a] -> Maybe Int
-findIndex value xs = go xs 0
-  where
-    go (x:y:xs) idx
-      | value >= x && value < y = Just idx
-      | otherwise = go (y:xs) (idx + 1)
-    go _ _ = Nothing
-
-isBetweenInterpolation:: Int -> Int -> Int -> Int -> Bool
-isBetweenInterpolation idxI idxJ nx ny = interpolateI && interpolateJ
-    where
-        interpolateI = idxI >= 0 && idxI < (nx-1) 
-        interpolateJ = idxJ >= 0 && idxJ < (ny-1)
-
-gridHeight :: MiniLayer -> Bathymetry -> Int -> Int -> Double
-gridHeight miniLayer layBath i j = centerZ + rightZ + downZ + rightDownZ
-    where 
-        xArr = bx layBath
-        yArr = by layBath
-        zArr = bz layBath
-        indexI = findIndex (hx miniLayer !! i) xArr
-        indexJ = findIndex (hy miniLayer !! j) yArr
-        idxI
-            | isNothing indexI = hnx miniLayer -2
-            | otherwise = fromJust indexI
-        idxJ
-            | isNothing indexJ = hny miniLayer -2
-            | otherwise = fromJust indexJ
-        centerZ = zArr !! idxI !! idxJ * (1.0-cx)*(1.0-cy)
-        rightZ = zArr !! (idxI+1) !! idxJ * cx * (1.0-cy)
-        downZ = zArr !! idxI !! (idxJ+1) * (1.0-cx) * cy
-        rightDownZ = zArr !! (idxI+1) !! (idxJ+1) * cx * cy
-
-        cx = ((hx miniLayer !! i) - xArr !! idxI) / deltaX
-        cy = ((hy miniLayer !! j) - yArr !! idxJ) / deltaY
-        deltaX = xArr !! (idxI+1) - xArr !! idxI
-        deltaY = yArr !! (idxJ+1) - yArr !! idxJ
-
-gridInterpolate:: MiniLayer -> Bathymetry -> MiniLayer
-gridInterpolate miniLayer layBath = updateMiniLayerH newH miniLayer
-    where newH = generateLayerWithConfig miniLayer layBath gridHeight
-        
- ----------------------------------------
-
-parameterIndent:: Int
-parameterIndent = 49
 
 getParameterValue:: String -> Int -> String
 getParameterValue content = drop parameterIndent . (lines content !!)
@@ -260,24 +148,160 @@ readConfig f fileName = do
     content <- readFile fileName
     return $ f content
 
-readLayerConfig:: String -> IO LayerConfig
-readLayerConfig = readConfig getRootLayer
+--------------------------------------------------
+-- Extract Bathymetry data
 
-readFaultConfig:: String -> IO FaultConfig
-readFaultConfig = readConfig getFaultConfig
+bathymetryFileLength:: String -> Int
+bathymetryFileLength content = length (lines content)
 
-readGeneralConfig:: String -> IO GeneralConfig
-readGeneralConfig = readConfig getGeneralConfig
+readBathData:: ([String]-> String) -> String -> [Double]
+readBathData index content = map (read . index . words) (lines content) 
 
------------------------------------------
-getInitialLayer:: LayerConfig -> IO MiniLayer
-getInitialLayer layConfig = do
-    content <- readFile (depth_name layConfig)
-    let layBath = getBathymetryData content
-    let initLayer = dxCalc layConfig
-    return $ gridInterpolate initLayer layBath
+readBathDataX:: String -> [Double]
+readBathDataX = readBathData head
 
-----------------------------------------------
+readBathDataY:: String -> [Double]
+readBathDataY = readBathData (!! 1)
+
+readBathDataZ:: String -> [Double]
+readBathDataZ = readBathData (!! 2)
+
+isWrittenRowByRow:: [Double] -> [Double] -> Bool
+isWrittenRowByRow x y = xDiff > eps && yDiff < eps
+    where 
+        xDiff = abs (head x - x !! 1) 
+        yDiff = abs (head y - y !! 1)
+
+getBathyNXY:: [Double] -> Int -> Int
+getBathyNXY (x:xs) acc
+    | head xs > x = getBathyNXY xs acc + 1
+    | otherwise = acc
+
+getBathN:: ([Double],[Double]) -> Int -> (Int,Int)
+getBathN (x,y) nxy
+    | isWrittenRowByRow x y = (getBathyNXY x 1, round nxyfromRow)
+    | otherwise = (getBathyNXY y 1, round nxyfromCol)
+    where 
+        nxyfromRow = fromIntegral nxy/fromIntegral (getBathyNXY x 1)
+        nxyfromCol = fromIntegral nxy/fromIntegral (getBathyNXY y 1)
+
+generateXCoor:: [Double] -> [Double] -> Int -> Int -> [Double]
+generateXCoor bathDataX bathDataY nx ny
+    | isWrittenRowByRow bathDataX bathDataY = [bathDataX !! i | i <-[0..nx-1]]
+    | otherwise = [bathDataX !! (i*ny) | i <-[0..nx-1]]
+
+generateYCoor:: [Double] -> [Double] -> Int -> Int -> [Double]
+generateYCoor bathDataX bathDataY nx ny
+    | not (isWrittenRowByRow bathDataX bathDataY) = [bathDataY !! i | i <-[0..ny-1]]
+    | otherwise = [bathDataY !! (i*nx) | i <-[0..ny-1]]
+
+generateZCoor:: [Double] -> [Double] -> [Double] -> Int -> Int -> [[Double]]
+generateZCoor bathDataX bathDataY bathDataZ nx ny
+    | isWrittenRowByRow bathDataX bathDataY = transpose [take nx (drop (i*nx) bathDataZ) | i <-[0..ny-1]]
+    | otherwise = [take ny (drop (i*ny) bathDataZ) | i <-[0..nx-1]]
+
+getBathymetryData:: String -> Bathymetry
+getBathymetryData bathContent = Bathymetry {bx = x, by = y, bz = z, bnx = nx, bny = ny}
+    where
+        x = generateXCoor bathDataX bathDataY nx ny
+        y = generateYCoor bathDataX bathDataY nx ny
+        z = generateZCoor bathDataX bathDataY bathDataZ nx ny
+        bathDataX = readBathDataX bathContent
+        bathDataY = readBathDataY bathContent
+        bathDataZ = readBathDataZ bathContent
+        (nx,ny) = getBathN (bathDataX,bathDataY) nxy
+        nxy = bathymetryFileLength bathContent
+
+--------------------------------------------------
+-- Generate Inital Layer
+
+findNxy:: LayerConfig -> (LayerConfig -> Double) -> (LayerConfig -> Double) -> Int
+findNxy layConfig start end
+    | isCartesian layConfig = cartN 
+    | otherwise = sphereN
+    where
+        cartN = 1 + round (distance/d)
+        sphereN = 1 + round (distance*60/d)
+        distance = end layConfig - start layConfig
+        d = dx layConfig
+
+dxCalc:: LayerConfig -> MiniLayer
+dxCalc layConfig = MiniLayer { 
+        hnx = nx, 
+        hny = ny, 
+        hx = [x_start layConfig + fromIntegral i*d | i <- [0..nx-1]], 
+        hy = [y_start layConfig + fromIntegral j*d | j <- [0..ny-1]], 
+        h = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hp = [[]],
+        hq = [[]],
+        hzCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hzNext = [[]],
+        hmCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hmNext = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hnCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hnNext = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]]
+    }
+    where
+        nx = findNxy layConfig x_start x_end
+        ny = findNxy layConfig y_start y_end
+        d = dx layConfig
+
+findIndex :: (Ord a) => a -> [a] -> Maybe Int
+findIndex value xs = go xs 0
+  where
+    go (x:y:xs) idx
+      | value >= x && value < y = Just idx
+      | otherwise = go (y:xs) (idx + 1)
+    go _ _ = Nothing
+
+isBetweenInterpolation:: Int -> Int -> Int -> Int -> Bool
+isBetweenInterpolation idxI idxJ nx ny = interpolateI && interpolateJ
+    where
+        interpolateI = idxI >= 0 && idxI < (nx-1) 
+        interpolateJ = idxJ >= 0 && idxJ < (ny-1)
+
+gridHeight :: MiniLayer -> Bathymetry -> Int -> Int -> Double
+gridHeight miniLayer layBath i j = centerZ + rightZ + downZ + rightDownZ
+    where 
+        xArr = bx layBath
+        yArr = by layBath
+        zArr = bz layBath
+        indexI = findIndex (hx miniLayer !! i) xArr
+        indexJ = findIndex (hy miniLayer !! j) yArr
+        idxI
+            | isNothing indexI = hnx miniLayer -2
+            | otherwise = fromJust indexI
+        idxJ
+            | isNothing indexJ = hny miniLayer -2
+            | otherwise = fromJust indexJ
+        centerZ = zArr !! idxI !! idxJ * (1.0-cx)*(1.0-cy)
+        rightZ = zArr !! (idxI+1) !! idxJ * cx * (1.0-cy)
+        downZ = zArr !! idxI !! (idxJ+1) * (1.0-cx) * cy
+        rightDownZ = zArr !! (idxI+1) !! (idxJ+1) * cx * cy
+
+        cx = ((hx miniLayer !! i) - xArr !! idxI) / deltaX
+        cy = ((hy miniLayer !! j) - yArr !! idxJ) / deltaY
+        deltaX = xArr !! (idxI+1) - xArr !! idxI
+        deltaY = yArr !! (idxJ+1) - yArr !! idxJ
+
+gridInterpolate:: MiniLayer -> Bathymetry -> MiniLayer
+gridInterpolate miniLayer layBath = updateMiniLayerH newH miniLayer
+    where newH = generateLayerWithConfig miniLayer layBath gridHeight
+
+--------------------------------------------------
+-- Extract Initial Deformation from file
+
+getInitSurfData:: String -> Bathymetry
+getInitSurfData bathContent = Bathymetry {bx = x, by = y, bz = z, bnx = nx, bny = ny}
+    where
+        x = generateXCoor bathDataX bathDataY nx ny
+        y = generateYCoor bathDataX bathDataY nx ny
+        z = generateZCoor bathDataX bathDataY bathDataZ nx ny
+        bathDataX = readBathDataX bathContent
+        bathDataY = readBathDataY bathContent
+        bathDataZ = readBathDataZ bathContent
+        (nx,ny) = getBathN (bathDataX,bathDataY) nxy
+        nxy = bathymetryFileLength bathContent
 
 getInitialDeformFromData:: FaultConfig -> IO [[Double]]
 getInitialDeformFromData fault = do
@@ -304,10 +328,8 @@ getFloorDeform time layer layConfig fault = do
         -- newHZ = [[height i j | j <- [0..hny layer -1]] | i <- [0..hnx layer -1]]
         -- height i j = (hzCurr layer !! i !! j) + (deform !! i !! j)
 
-getInitialSurface:: MiniLayer -> LayerConfig -> FaultConfig -> IO MiniLayer
-getInitialSurface = getFloorDeform 0.0
-
-----------------------------------------------
+--------------------------------------------------
+-- Adjust bathymetry
 
 updateHeightP :: MiniLayer -> Int -> Int -> Double
 updateHeightP l i j = 0.5*((h l !! i !! j) + (h l !! ip1 !! j))  
@@ -329,9 +351,6 @@ updateHPQ layer = (updateMiniLayerHP newHP . updateMiniLayerHQ newHQ) layer
         newHP = generateLayer layer updateHeightP
         newHQ = generateLayer layer updateHeightQ
 
-adjustBathymetry:: MiniLayer -> MiniLayer
-adjustBathymetry = updateHPQ
-
 updateBathHeight :: MiniLayer -> [[Double]] -> Int -> Int -> Double
 updateBathHeight l deform i j = (h l !! i !! j) - (deform !! i !! j)
 
@@ -339,7 +358,9 @@ updateBathymetry:: [[Double]] -> MiniLayer -> MiniLayer
 updateBathymetry deform layer = (updateHPQ . updateMiniLayerH newH) layer
     where newH = generateLayerWithConfig layer deform updateBathHeight
 
-------------------------------------------
+
+--------------------------------------------------
+-- Check Courant Condition for Stability
 
 courantLatMax :: MiniLayer -> Double
 courantLatMax = (radDeg *) . onResults1 max (abs . (head . hy)) (abs . (last . hy))
@@ -353,17 +374,11 @@ courantDiffY layer layConfig
     | isCartesian layConfig = dx layConfig
     | otherwise = rEarth * dx layConfig * radMin
 
-checkCourantCondition:: MiniLayer -> LayerConfig -> LayerConfig
-checkCourantCondition layer layConfig = updateLayerConfigDt newDt layConfig 
-    where 
-        hMax = (maximum . (map maximum . h)) layer
-        delta = onResults2 min courantDiffX courantDiffY layer layConfig
-        courant = dt layConfig/courantCoef
-        courantCoef = delta/(sqrt grav*hMax)
-        courantLimit
-            | isCartesian layConfig = 0.35
-            | otherwise = 0.5
-        newDt
-            | courant > courantLimit = courantLimit * courantCoef
-            | otherwise = dt layConfig
+courantLimit :: LayerConfig -> Double
+courantLimit lConfig 
+    | isCartesian lConfig = 0.35
+    | otherwise = 0.5
+
+deltaCourant :: MiniLayer -> LayerConfig -> Double
+deltaCourant = onResults2 min courantDiffX courantDiffY
         

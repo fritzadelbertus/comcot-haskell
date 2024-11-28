@@ -1,5 +1,8 @@
 module TypeModule where
 
+--------------------------------------------------
+-- MiniLayer data type
+
 data MiniLayer = MiniLayer {
     hnx     :: Int,
     hny     :: Int,
@@ -43,6 +46,9 @@ updateMiniLayerHNCurr newHN layer = layer {hnCurr = newHN}
 updateMiniLayerHNNext:: [[Double]] -> MiniLayer -> MiniLayer
 updateMiniLayerHNNext newHN layer = layer {hnNext = newHN}
 
+--------------------------------------------------
+-- Bathymetry data type
+
 data Bathymetry = Bathymetry {
     bx  :: [Double],
     by  :: [Double],
@@ -50,6 +56,9 @@ data Bathymetry = Bathymetry {
     bnx :: Int,
     bny :: Int
 }
+
+--------------------------------------------------
+-- GeneralConfig data type
 
 data GeneralConfig = GeneralConfig {
     total_time          :: Double,
@@ -62,6 +71,8 @@ data GeneralConfig = GeneralConfig {
     boundary_condition  :: Int
 } deriving Show
 
+--------------------------------------------------
+-- LayerConfig data type
 
 data LayerConfig = LayerConfig {
     layswitch   :: Int,
@@ -85,6 +96,9 @@ data LayerConfig = LayerConfig {
 
 updateLayerConfigDt:: Double -> LayerConfig -> LayerConfig
 updateLayerConfigDt newDt config = config {dt = newDt}
+
+--------------------------------------------------
+-- FaultConfig data type
 
 data FaultConfig = FaultConfig {
     num_fault       :: Int,

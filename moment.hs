@@ -1,7 +1,17 @@
 module Moment where
+
 import TypeModule
-import Constants
+    ( updateMiniLayerHMNext,
+      updateMiniLayerHNNext,
+      LayerConfig(laycord),
+      MiniLayer(h, hp, hmCurr, hq, hzNext, hnCurr, hny, hnx) )
+import Constants ( eps, gx, zero )
 import Helper
+    ( generateLayerWithConfig, grxLayer, gryLayer, onResults3 )
+
+--------------------------------------------------
+-- Solve moment equation for Cartesian
+
 moment:: LayerConfig -> MiniLayer -> MiniLayer
 moment layConfig layer
     -- | isSpherical = momtS layer
@@ -10,6 +20,60 @@ moment layConfig layer
     where 
         isSpherical = laycord layConfig == 0
         isCartesian = laycord layConfig == 1
+
+heightFactorMC:: LayerConfig -> MiniLayer ->  Int -> Int -> Double
+heightFactorMC c l i j = grxLayer c * hm * ((hzNext l !! (i+1) !! j) - (hzNext l !! i !! j)) 
+    where hm = (hp l !! i !! j) + 0.5 * ((hzNext l !! i !! j) + (hzNext l !! (i+1) !! j))
+
+prevMomentMC:: MiniLayer -> Int -> Int -> Double
+prevMomentMC =  ((!!) .) . ((!!) . hmCurr)
+
+solveMomMC:: LayerConfig -> MiniLayer -> Int -> Int -> Double
+solveMomMC c = onResults3 (-) prevMomentMC (heightFactorMC c)
+
+heightFactorNC:: LayerConfig -> MiniLayer ->  Int -> Int -> Double
+heightFactorNC c l i j = gryLayer c * hn * ((hzNext l !! i !! (j + 1))-(hzNext l !! i !! j))
+    where hn = (hq l !! i !! j) + 0.5 * ((hzNext l !! i !! j) + (hzNext l !! i !! (j+1)))
+
+prevMomentNC:: MiniLayer -> Int -> Int -> Double
+prevMomentNC =  ((!!) .) . ((!!) . hnCurr)
+
+solveMomNC:: LayerConfig -> MiniLayer -> Int -> Int -> Double
+solveMomNC c = onResults3 (-) prevMomentNC (heightFactorNC c)
+        
+
+fluxMC :: MiniLayer -> LayerConfig -> Int -> Int -> Double
+fluxMC l c i j
+    | i > lastMx = zero
+    | stillWaterDepth1 && stillWaterDepth2  && abs xm > eps = xm
+    | otherwise = zero
+    where
+        lastMy = hny l - 1
+        lastMx = hnx l - 2
+        stillWaterDepth1 = h l !! i !! j > gx
+        stillWaterDepth2 = h l !! (i + 1) !! j > gx
+        xm = solveMomMC c l i j
+
+fluxNC :: MiniLayer -> LayerConfig -> Int -> Int -> Double
+fluxNC l c i j
+    | j > lastNy = zero
+    | stillWaterDepth1 > gx && stillWaterDepth2 > gx && abs xn > eps = xn
+    | otherwise = zero
+    where
+        lastNy = hny l - 2
+        lastNx = hnx l - 1
+        stillWaterDepth1 = h l !! i !! j
+        stillWaterDepth2 = h l !! i !! (j + 1)
+        xn = solveMomNC c l i j
+
+momtC:: MiniLayer -> LayerConfig -> MiniLayer
+momtC layer layConfig = (updateMiniLayerHNNext nextLayerN . updateMiniLayerHMNext nextLayerM) layer
+    where
+        nextLayerM = generateLayerWithConfig layer layConfig fluxMC
+        nextLayerN = generateLayerWithConfig layer layConfig fluxNC
+
+--------------------------------------------------
+-- Moment for spherical is not available yet
 
 -- startMoment:: Layer -> Int
 -- startMoment l
@@ -65,54 +129,3 @@ moment layConfig layer
 --                 stillWaterDepth1 = h l !! i !! j
 --                 stillWaterDepth2 = h l !! i !! (j + 1)
 --                 xn = solveMomNS l i j
-
-heightFactorMC:: LayerConfig -> MiniLayer ->  Int -> Int -> Double
-heightFactorMC c l i j = grxLayer c * hm * ((hzNext l !! (i+1) !! j) - (hzNext l !! i !! j)) 
-    where hm = (hp l !! i !! j) + 0.5 * ((hzNext l !! i !! j) + (hzNext l !! (i+1) !! j))
-
-prevMomentMC:: MiniLayer -> Int -> Int -> Double
-prevMomentMC =  ((!!) .) . ((!!) . hmCurr)
-
-solveMomMC:: LayerConfig -> MiniLayer -> Int -> Int -> Double
-solveMomMC c = onResults3 (-) prevMomentMC (heightFactorMC c)
-
-heightFactorNC:: LayerConfig -> MiniLayer ->  Int -> Int -> Double
-heightFactorNC c l i j = gryLayer c * hn * ((hzNext l !! i !! (j + 1))-(hzNext l !! i !! j))
-    where hn = (hq l !! i !! j) + 0.5 * ((hzNext l !! i !! j) + (hzNext l !! i !! (j+1)))
-
-prevMomentNC:: MiniLayer -> Int -> Int -> Double
-prevMomentNC =  ((!!) .) . ((!!) . hnCurr)
-
-solveMomNC:: LayerConfig -> MiniLayer -> Int -> Int -> Double
-solveMomNC c = onResults3 (-) prevMomentNC (heightFactorNC c)
-        
-
-fluxMC :: MiniLayer -> LayerConfig -> Int -> Int -> Double
-fluxMC l c i j
-    | i > lastMx = zero
-    | stillWaterDepth1 && stillWaterDepth2  && abs xm > eps = xm
-    | otherwise = zero
-    where
-        lastMy = hny l - 1
-        lastMx = hnx l - 2
-        stillWaterDepth1 = h l !! i !! j > gx
-        stillWaterDepth2 = h l !! (i + 1) !! j > gx
-        xm = solveMomMC c l i j
-
-fluxNC :: MiniLayer -> LayerConfig -> Int -> Int -> Double
-fluxNC l c i j
-    | j > lastNy = zero
-    | stillWaterDepth1 > gx && stillWaterDepth2 > gx && abs xn > eps = xn
-    | otherwise = zero
-    where
-        lastNy = hny l - 2
-        lastNx = hnx l - 1
-        stillWaterDepth1 = h l !! i !! j
-        stillWaterDepth2 = h l !! i !! (j + 1)
-        xn = solveMomNC c l i j
-
-momtC:: MiniLayer -> LayerConfig -> MiniLayer
-momtC layer layConfig = (updateMiniLayerHNNext nextLayerN . updateMiniLayerHMNext nextLayerM) layer
-    where
-        nextLayerM = generateLayerWithConfig layer layConfig fluxMC
-        nextLayerN = generateLayerWithConfig layer layConfig fluxNC

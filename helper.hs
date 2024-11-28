@@ -1,13 +1,22 @@
 module Helper where
-import Constants
+import Constants ( grav, zero )
 import TypeModule
+    ( GeneralConfig(output_option, total_time, boundary_condition,
+                    time_interval, height_limit),
+      LayerConfig(laycord, dt, dx, layer_id, laygov),
+      MiniLayer(hny, hnx) )
 import Numeric (showFFloat)
+
+--------------------------------------------------
 
 show4:: Double -> String
 show4 = flip (showFFloat (Just 4)) ""
 
 removeLeadingSpaces:: String -> String
 removeLeadingSpaces = dropWhile (== ' ')
+
+--------------------------------------------------
+-- Helper for formulas and equations
 
 setToSomethingIfInfinite:: Double -> Double -> Double
 setToSomethingIfInfinite y x
@@ -46,6 +55,9 @@ generateLayer layer cellFunc = [[cellFunc layer i j | j <- [0..hny layer-1]] | i
 generateLayerWithConfig :: MiniLayer -> b -> (MiniLayer -> b -> Int -> Int -> a) -> [[a]]
 generateLayerWithConfig layer config cellFunc = [[cellFunc layer config i j | j <- [0..hny layer-1]] | i <- [0..hnx layer-1]]
 
+--------------------------------------------------
+-- Helper for point-free styling
+
 onResults3 :: (t1 -> t2 -> t3) -> (t4 -> t5 -> t6 -> t1) -> (t4 -> t5 -> t6 -> t2) -> t4 -> t5 -> t6 -> t3
 onResults3 op f g a b c  = op (f a b c) (g a b c)
 
@@ -55,6 +67,8 @@ onResults2 op f g a b = op (f a b) (g a b)
 onResults1 :: (t1 -> t2 -> t3) -> (t4 -> t1) -> (t4 -> t2) -> t4 -> t3
 onResults1 op f g a = op (f a) (g a)
 
+--------------------------------------------------
+-- Helper for LayerConfig data type
 
 showLayerId :: LayerConfig -> String
 showLayerId = show . layer_id
@@ -69,21 +83,14 @@ showGoverningEq config
     | laygov config == 0 = "USE LINEAR SHALLOW WATER EQUATIONS"
     | otherwise = "NOT AVAILABLE YET"
 
-
-
-
-
-
-
-
 isCartesian:: LayerConfig -> Bool
 isCartesian l = laycord l == 1 
 
 isSpherical:: LayerConfig -> Bool
 isSpherical l = laycord l == 0
 
-
-------------------------------------------
+--------------------------------------------------
+-- Helper for GeneralConfig data type
 
 showTotalRunTime :: GeneralConfig -> String
 showTotalRunTime = show4 . total_time

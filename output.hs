@@ -1,7 +1,22 @@
 module Output where
 
 import TypeModule
+    ( FaultConfig(fault_src_data),
+      GeneralConfig(initial_surface),
+      LayerConfig,
+      MiniLayer(hzCurr) )
 import Helper
+    ( show4,
+      showBoundaryCodition,
+      showDepthContour,
+      showStepInterval,
+      showTimeHistoryOutput,
+      showTimeInterval,
+      showTotalRunTime,
+      showZMaxOutput,
+      showLayerId,
+      showCoorSystem,
+      showGoverningEq )
 import Numeric (showFFloat)
 
 header :: String
@@ -10,6 +25,9 @@ header = "************** COMCOT (haskell)******************\n\
 \ *            VERSION= 1.7                 *\n\
 \ *                                          *\n\
 \ ****************************************************"
+
+--------------------------------------------------
+-- Simulation Informations
 
 generalInfo:: GeneralConfig -> Double -> Int -> String
 generalInfo config step end = "------------------- GENERAL INFORMATION -------------------\n\
@@ -64,11 +82,17 @@ simulationInfo lConfig fConfig gConfig step end = "*****************************
 \ "++ layerInfo lConfig
 
 
+--------------------------------------------------
+-- Output Free Surface Displacement
+
 printOutput :: MiniLayer -> Int -> IO MiniLayer
 printOutput layer int = do 
-    let filePath = "output/output" ++ show int ++ ".dat"                     -- File name
-    writeArrayToFile filePath ((showIn . hzCurr) layer)                      -- Write to file
+    let filePath = "output/output" ++ show int ++ ".dat"                   
+    writeArrayToFile filePath ((showIn . hzCurr) layer)                      
     return layer
+
+--------------------------------------------------
+-- Output Helpers
 
 writeArrayToFile :: FilePath -> [[Double]] -> IO ()
 writeArrayToFile filePath array = do
@@ -83,7 +107,6 @@ showIn:: [[Double]] -> [[Double]]
 showIn = foldr reduce []
     where 
         reduce item acc = acc ++ reshape 15 item
-
 
 formatRow :: [Double] -> String
 formatRow row = unwords (map (flip (showFFloat (Just 4)) "") row)

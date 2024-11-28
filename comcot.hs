@@ -1,10 +1,16 @@
 import Initialization
 import TypeModule
-import Helper
-import Mass
-import Moment
-import Boundary
-import Output
+    ( updateMiniLayerHMCurr,
+      updateMiniLayerHNCurr,
+      updateMiniLayerHZCurr,
+      FaultConfig,
+      GeneralConfig(total_time),
+      LayerConfig(dt, depth_name),
+      MiniLayer(hzNext, hnNext, hmNext) )
+import Mass ( mass )
+import Moment ( moment )
+import Boundary ( open )
+import Output ( printOutput, header, simulationInfo )
 
 
 change:: MiniLayer -> MiniLayer
@@ -20,7 +26,10 @@ iterateComcot start end time layer layConfig fault
         iterateComcot (start+1) end nextTime nextLayer layConfig fault
     where  
         nextTime = time + dt layConfig
-        nextLayer = change $ moment layConfig $ open $ mass layConfig layer 
+        nextLayer = change 
+            $ moment layConfig                                          -- Moment.hs 
+            $ open                                                      -- Boundary.hs
+            $ mass layConfig layer                                      -- Mass.hs
 
 
 main:: IO()
@@ -37,37 +46,23 @@ main = do
     
     putStrLn "READING BATHYMETRY DATA..."
     initialLayer <- getInitialLayer initlayConfig                                   -- Initialization.hs
-    initdeformLayer <- getInitialSurface initialLayer initlayConfig faultConfig  -- Initialization.hs
+    initdeformLayer <- getInitialSurface initialLayer initlayConfig faultConfig     -- Initialization.hs
     putStrLn "ADJUSTING BATHYMETRY DATA..."
     let adjustedBLayer = adjustBathymetry initdeformLayer                           -- Initialization.hs
     
 
-    let layConfig = checkCourantCondition adjustedBLayer initlayConfig
+    let layConfig = checkCourantCondition adjustedBLayer initlayConfig              -- Initialization.hs
     
 
     let istart = 1 
     let time = 0.0
     let kEnd = round (total_time generalConfig/dt layConfig)
 
-    putStrLn $ simulationInfo layConfig faultConfig generalConfig (dt layConfig) kEnd
+    putStrLn $ simulationInfo layConfig faultConfig generalConfig (dt layConfig) kEnd -- Output.hs
 
-    lastOutput <- iterateComcot istart kEnd time adjustedBLayer layConfig faultConfig
+    lastOutput <- iterateComcot istart kEnd time adjustedBLayer layConfig faultConfig -- Main Iteration
     putStrLn "Simulation Finished."
     
-    -- screenDisplay
-    -- for k = 1 to end
-    -- if k mod 10 == 0 print k,minutes
-    -- getFloorDeform
-    -- mass
-    -- open
-    -- if length children layer >= 1 allGrid
-    -- moment
-    -- if bcType 1 spongeLayer
-    -- if bcType 2 bcWall
-    -- if k mod iprt == 0 generateFile
-    -- maxAmp
-    -- change
-    --getTs
 
     
 
