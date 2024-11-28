@@ -1,5 +1,4 @@
 module Constants where
-import TypeModule (LayerConfig(LayerConfig))
 
 elmax :: Double
 elmax = -50.0

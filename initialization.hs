@@ -1,11 +1,11 @@
 module Initialization where
     
-import Helper ( removeLeadingSpaces )
+import Helper ( removeLeadingSpaces, isCartesian, generateLayerWithConfig, generateLayer, onResults1, onResults2 )
 import Constants (eps, rEarth, radMin, radDeg, grav)
 import Data.List (transpose)
 import TypeModule
 import Data.Maybe ( fromJust, isNothing )
-import Deform
+import Deform ( deformOkada )
 
 --------------------------------------------------------
 
@@ -21,8 +21,6 @@ getChildLayersParameters content = map (extractSection content) layersRange
 
 -------------------------------------------------------
 
-isCartesian:: LayerConfig -> Bool
-isCartesian l = laycord l == 1 
 
 ----------------------------
 bathymetryFileLength:: String -> Int
@@ -88,12 +86,27 @@ getBathymetryData bathContent = Bathymetry {bx = x, by = y, bz = z, bnx = nx, bn
 
 --------------------------------------------------------------------------
 
-findNxy:: LayerConfig -> (LayerConfig -> Double) -> (LayerConfig -> Double) -> Int
-findNxy layConfig start end = n
+getInitSurfData:: String -> Bathymetry
+getInitSurfData bathContent = Bathymetry {bx = x, by = y, bz = z, bnx = nx, bny = ny}
     where
-        n 
-            | isCartesian layConfig = cartN
-            | otherwise = sphereN
+        x = generateXCoor bathDataX bathDataY nx ny
+        y = generateYCoor bathDataX bathDataY nx ny
+        z = generateZCoor bathDataX bathDataY bathDataZ nx ny
+        bathDataX = readBathDataX bathContent
+        bathDataY = readBathDataY bathContent
+        bathDataZ = readBathDataZ bathContent
+        (nx,ny) = getBathN (bathDataX,bathDataY) nxy
+        nxy = bathymetryFileLength bathContent
+
+-------------------------------------------------------------------------
+
+
+
+findNxy:: LayerConfig -> (LayerConfig -> Double) -> (LayerConfig -> Double) -> Int
+findNxy layConfig start end
+    | isCartesian layConfig = cartN 
+    | otherwise = sphereN
+    where
         cartN = 1 + round (distance/d)
         sphereN = 1 + round (distance*60/d)
         distance = end layConfig - start layConfig
@@ -105,15 +118,15 @@ dxCalc layConfig = MiniLayer {
         hny = ny, 
         hx = [x_start layConfig + fromIntegral i*d | i <- [0..nx-1]], 
         hy = [y_start layConfig + fromIntegral j*d | j <- [0..ny-1]], 
-        h = [[]],
+        h = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
         hp = [[]],
         hq = [[]],
         hzCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
         hzNext = [[]],
-        hmCurr = [[]],
-        hmNext = [[]],
-        hnCurr = [[]],
-        hnNext = [[]]
+        hmCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hmNext = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hnCurr = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]],
+        hnNext = [[0.0 | j <-[0..ny-1]] | i <- [0..nx-1]]
     }
     where
         nx = findNxy layConfig x_start x_end
@@ -135,45 +148,41 @@ isBetweenInterpolation idxI idxJ nx ny = interpolateI && interpolateJ
         interpolateI = idxI >= 0 && idxI < (nx-1) 
         interpolateJ = idxJ >= 0 && idxJ < (ny-1)
 
-gridInterpolate:: MiniLayer -> Bathymetry -> MiniLayer
-gridInterpolate miniLayer layBath = updateMiniLayerH newH miniLayer
-    where
-        newH = [[height i j | j <- [0..endJ]] | i <- [0..endI]]
-        endI = hnx miniLayer -1
-        endJ = hny miniLayer -1
-        nx = bnx layBath
-        ny = bny layBath
+gridHeight :: MiniLayer -> Bathymetry -> Int -> Int -> Double
+gridHeight miniLayer layBath i j = centerZ + rightZ + downZ + rightDownZ
+    where 
         xArr = bx layBath
         yArr = by layBath
         zArr = bz layBath
-        height i j = centerZ + rightZ + downZ + rightDownZ
+        indexI = findIndex (hx miniLayer !! i) xArr
+        indexJ = findIndex (hy miniLayer !! j) yArr
+        idxI
+            | isNothing indexI = hnx miniLayer -2
+            | otherwise = fromJust indexI
+        idxJ
+            | isNothing indexJ = hny miniLayer -2
+            | otherwise = fromJust indexJ
+        centerZ = zArr !! idxI !! idxJ * (1.0-cx)*(1.0-cy)
+        rightZ = zArr !! (idxI+1) !! idxJ * cx * (1.0-cy)
+        downZ = zArr !! idxI !! (idxJ+1) * (1.0-cx) * cy
+        rightDownZ = zArr !! (idxI+1) !! (idxJ+1) * cx * cy
 
-            where 
-                indexI = findIndex (hx miniLayer !! i) xArr
-                indexJ = findIndex (hy miniLayer !! j) yArr
-                idxI
-                    | isNothing indexI = hnx miniLayer -2
-                    | otherwise = fromJust indexI
-                idxJ
-                    | isNothing indexJ = hny miniLayer -2
-                    | otherwise = fromJust indexJ
-                centerZ = zArr !! idxI !! idxJ * (1.0-cx)*(1.0-cy)
-                rightZ = zArr !! (idxI+1) !! idxJ * cx * (1.0-cy)
-                downZ = zArr !! idxI !! (idxJ+1) * (1.0-cx) * cy
-                rightDownZ = zArr !! (idxI+1) !! (idxJ+1) * cx * cy
+        cx = ((hx miniLayer !! i) - xArr !! idxI) / deltaX
+        cy = ((hy miniLayer !! j) - yArr !! idxJ) / deltaY
+        deltaX = xArr !! (idxI+1) - xArr !! idxI
+        deltaY = yArr !! (idxJ+1) - yArr !! idxJ
 
-                cx = ((hx miniLayer !! i) - xArr !! idxI) / deltaX
-                cy = ((hy miniLayer !! j) - yArr !! idxJ) / deltaY
-                deltaX = xArr !! (idxI+1) - xArr !! idxI
-                deltaY = yArr !! (idxJ+1) - yArr !! idxJ
-
+gridInterpolate:: MiniLayer -> Bathymetry -> MiniLayer
+gridInterpolate miniLayer layBath = updateMiniLayerH newH miniLayer
+    where newH = generateLayerWithConfig miniLayer layBath gridHeight
+        
  ----------------------------------------
 
 parameterIndent:: Int
 parameterIndent = 49
 
 getParameterValue:: String -> Int -> String
-getParameterValue content line = drop parameterIndent $ lines content !! line
+getParameterValue content = drop parameterIndent . (lines content !!)
 
 
 extractSection:: String -> [Int] -> [String]
@@ -224,7 +233,8 @@ getFaultConfig content = FaultConfig {
         comp_origin_x   = read $ params !! 10,
         comp_origin_y   = read $ params !! 11,
         epicenter_x     = read $ params !! 12,
-        epicenter_y     = read $ params !! 13
+        epicenter_y     = read $ params !! 13,
+        fault_src_data  = params !! 14
     }
     where params = getFaultParameters content
 
@@ -245,20 +255,19 @@ getGeneralConfig content = GeneralConfig {
     }
     where params = getGeneralParameters content
 
-readLayerConfig:: String -> IO LayerConfig
-readLayerConfig fileName = do
+readConfig :: (String -> a) -> String -> IO a
+readConfig f fileName = do
     content <- readFile fileName
-    return $ getRootLayer content
+    return $ f content
+
+readLayerConfig:: String -> IO LayerConfig
+readLayerConfig = readConfig getRootLayer
 
 readFaultConfig:: String -> IO FaultConfig
-readFaultConfig fileName = do
-    content <- readFile fileName
-    return $ getFaultConfig content
+readFaultConfig = readConfig getFaultConfig
 
 readGeneralConfig:: String -> IO GeneralConfig
-readGeneralConfig fileName = do
-    content <- readFile fileName
-    return $ getGeneralConfig content
+readGeneralConfig = readConfig getGeneralConfig
 
 -----------------------------------------
 getInitialLayer:: LayerConfig -> IO MiniLayer
@@ -270,62 +279,85 @@ getInitialLayer layConfig = do
 
 ----------------------------------------------
 
-getFloorDeform:: Double -> MiniLayer -> LayerConfig -> FaultConfig -> MiniLayer
-getFloorDeform time layer layConfig fault = (updateMiniLayerHZCurr newHZ . updateBathymetry deform) layer
+getInitialDeformFromData:: FaultConfig -> IO [[Double]]
+getInitialDeformFromData fault = do
+    content <- readFile (fault_src_data fault)
+    let deformBath = getInitSurfData content
+    return $ bz deformBath
+
+createNewHZDeform :: MiniLayer -> [[Double]] -> [[Double]]
+createNewHZDeform layer deform = [[height i j | j <- [0..hny layer -1]] | i <- [0..hnx layer -1]]
     where 
-        deform
-            | rupture_time fault >= time && rupture_time fault < time + dt layConfig = deformOkada layer layConfig fault
-            | otherwise = [[0.0 | j <- [0..hny layer -1]] | i <- [0..hnx layer -1]]
-        newHZ = [[height i j | j <- [0..hny layer -1]] | i <- [0..hnx layer -1]]
         height i j = (hzCurr layer !! i !! j) + (deform !! i !! j)
 
-getInitialSurface:: MiniLayer -> LayerConfig -> FaultConfig -> MiniLayer
+
+getFloorDeform:: Double -> MiniLayer -> LayerConfig -> FaultConfig -> IO MiniLayer
+getFloorDeform time layer layConfig fault = do
+    deform <- getInitialDeformFromData fault 
+    let newHZ = createNewHZDeform layer deform
+    let ret = (updateMiniLayerHZCurr newHZ . updateBathymetry deform) layer
+    return ret
+    -- where 
+        -- deform
+            -- | rupture_time fault >= time && rupture_time fault < time + dt layConfig = deformOkada layer layConfig fault
+            -- | otherwise = [[0.0 | j <- [0..hny layer -1]] | i <- [0..hnx layer -1]]
+        -- newHZ = [[height i j | j <- [0..hny layer -1]] | i <- [0..hnx layer -1]]
+        -- height i j = (hzCurr layer !! i !! j) + (deform !! i !! j)
+
+getInitialSurface:: MiniLayer -> LayerConfig -> FaultConfig -> IO MiniLayer
 getInitialSurface = getFloorDeform 0.0
 
 ----------------------------------------------
 
+updateHeightP :: MiniLayer -> Int -> Int -> Double
+updateHeightP l i j = 0.5*((h l !! i !! j) + (h l !! ip1 !! j))  
+    where 
+        ip1
+            | i+1 == hnx l = i
+            | otherwise = i+1 
+
+updateHeightQ :: MiniLayer -> Int -> Int -> Double
+updateHeightQ l i j = 0.5*((h l !! i !! j) + (h l !! i !! jp1))  
+    where 
+        jp1
+            | j+1 == hny l = j
+            | otherwise = j+1 
+
 updateHPQ:: MiniLayer -> MiniLayer
 updateHPQ layer = (updateMiniLayerHP newHP . updateMiniLayerHQ newHQ) layer
     where 
-        newHP = [[heightP layer i j | j <- [0..hny layer-1]] | i <- [0..hnx layer-1]]
-        newHQ = [[heightQ layer i j | j <- [0..hny layer-1]] | i <- [0..hnx layer-1]]
-        heightP l i j = 0.5*((h l !! i !! j) + (h l !! ip1 !! j))  
-            where 
-                ip1
-                    | i+1 == hnx l = i
-                    | otherwise = i+1 
-        heightQ l i j = 0.5*((h l !! i !! j) + (h l !! i !! jp1))  
-            where 
-                jp1
-                    | j+1 == hny l = j
-                    | otherwise = j+1 
+        newHP = generateLayer layer updateHeightP
+        newHQ = generateLayer layer updateHeightQ
 
 adjustBathymetry:: MiniLayer -> MiniLayer
 adjustBathymetry = updateHPQ
 
+updateBathHeight :: MiniLayer -> [[Double]] -> Int -> Int -> Double
+updateBathHeight l deform i j = (h l !! i !! j) - (deform !! i !! j)
+
 updateBathymetry:: [[Double]] -> MiniLayer -> MiniLayer
 updateBathymetry deform layer = (updateHPQ . updateMiniLayerH newH) layer
-    where 
-        newH = [[height i j | j <- [0..endJ]] | i <- [0..endI]]
-        endI = hnx layer -1
-        endJ = hny layer -1
-        height i j = (h layer !! i !! j) - (deform !! i !! j)
+    where newH = generateLayerWithConfig layer deform updateBathHeight
 
 ------------------------------------------
 
+courantLatMax :: MiniLayer -> Double
+courantLatMax = (radDeg *) . onResults1 max (abs . (head . hy)) (abs . (last . hy))
+courantDiffX :: MiniLayer -> LayerConfig -> Double
+courantDiffX layer layConfig
+    | isCartesian layConfig = dx layConfig
+    | otherwise = rEarth * cos (courantLatMax layer) * dx layConfig * radMin
+
+courantDiffY :: MiniLayer -> LayerConfig -> Double
+courantDiffY layer layConfig
+    | isCartesian layConfig = dx layConfig
+    | otherwise = rEarth * dx layConfig * radMin
 
 checkCourantCondition:: MiniLayer -> LayerConfig -> LayerConfig
 checkCourantCondition layer layConfig = updateLayerConfigDt newDt layConfig 
     where 
-        hMax = maximum $ map maximum (h layer)
-        latMax = max (abs (head (hy layer))) (abs (last (hy layer))) * radDeg
-        diffX
-            | isCartesian layConfig = dx layConfig
-            | otherwise = rEarth * cos latMax * dx layConfig * radMin
-        diffY
-            | isCartesian layConfig = dx layConfig
-            | otherwise = rEarth * dx layConfig * radMin
-        delta = min diffX diffY
+        hMax = (maximum . (map maximum . h)) layer
+        delta = onResults2 min courantDiffX courantDiffY layer layConfig
         courant = dt layConfig/courantCoef
         courantCoef = delta/(sqrt grav*hMax)
         courantLimit
