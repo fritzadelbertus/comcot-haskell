@@ -14,7 +14,7 @@
  Start Type (0-Cold start; 1-Hot start)         :     0
  Resuming Time If hot start (Seconds)           :  8000.00
  Specify Min WaterDepth offshore  (meter)       :     0.00
- Initial Cond. (0:FLT,1:File,2:WM,3:LS,4:FLT+LS):     0
+ Initial Cond. (0:FLT,1:File,2:WM,3:LS,4:FLT+LS):     1
  Specify BC  (0-Open;1-Sponge;2-Wall;3-FACTS)   :     0
  Specify Input Z filename (for BC=3, FACTS)     : mw94_n22_nz_ha.xyt
  Specify Input U filename (for BC=3, FACTS)     : mw94_n22_nz_ua.xyt
