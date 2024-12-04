@@ -39,7 +39,6 @@ deform_seg[0-9][0-9][0-9].dat
 time.dat
 *.xyz
 *.swp
-*.png
 .metadata/*
 RemoteSystemsTempFiles/*
 # python packages

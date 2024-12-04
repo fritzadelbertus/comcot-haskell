@@ -86,9 +86,28 @@ Not available
 `fault_multi.ctl` and `landslide.ctl` not available
 
 ## Results
+The writer used a 100x100 bathymetry data with 100x100 initial wave value. Below
+are the results visualized in contour map.
+
+![](/README/figure/frame_2.png)
+![](/README/figure/frame_2_2.png)
+
+![](/README/figure/frame_10.png)
+![](/README/figure/frame_2_10.png)
+
+### Comparison:
+1. Accuracy: Fortran performs better. This is obvious because Fortran specialized on Numerical Computing.
+2. Memory: Haskell requires around 2 times more memory compared to Fortran. This is due to Haskell lazy evaluation that needs additional memory to store the functions.
+3. Speed: Ignoring the overhead of lazy evaluation, the speed of both Haskell and Fortran was similar in this test sample.
+
+### Haskell's Strengths:
+1. Mathematical Abstraction: As previously mentioned, the code in Haskell that implements the mathematical formula is very straight-forward and readable compared to Fortran (see `mass.hs` and `moment.hs`).
+2. Clean and readable code: Haskell remove alot of tedious and unnecessary codes and focus more on concepts and implementation. (Some lines in Fortran can be compressed and break down into small and compact readable functions when ported to Haskell)
+
+
 
 ## References
-Wang, X. (2009). User manual for COMCOT version 1.7.
-Andy. COMCOT in Fortran [github](https://github.com/AndybnACT/comcot-gfortran)
+1. Wang, X. (2009). User manual for COMCOT version 1.7.
+2. Andy. COMCOT in Fortran [github](https://github.com/AndybnACT/comcot-gfortran)
 
 
