@@ -53,7 +53,7 @@ Below listed concepts in Functional Programming implemented in this project.
 2. Higher-Order Function, `map` and `fold` functions was implemented in list manipulations. Custom higher-order function are also created to achieve point-free style writing.
 3. Partial Application, some higher-order fucntions are partialy aplicated to produce a more specific function.
 4. Function Composition, other function are alse composed which also result in point-free style writing.
-5. Lazy Evaluation, this result in interesting and different output in the program ([See Result]())
+5. Lazy Evaluation, this results in interesting performance result ([See Result]())
 
 ## Limitation
 This is a 60 hours targeted project across 6 weeks, and the writer admits his incapability to port the full COMCOT features from Fortran to Haskell. Below listed the features which are supported:
@@ -87,9 +87,8 @@ Not available
 
 ## Results
 
-## Acknowledgment
-
-## Closing Notes
-The writer 
+## References
+Wang, X. (2009). User manual for COMCOT version 1.7.
+Andy. COMCOT in Fortran [github](https://github.com/AndybnACT/comcot-gfortran)
 
 
