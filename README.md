@@ -16,7 +16,8 @@ The writer also believes that Pure-Functional Programming has similar syntax wri
     4. [Running The Program](#running-the-program)
 3. [Key Functional Programming Concepts](#key-functional-programming-concepts)
 4. [Limitation](#limitation)
-
+5. [Results](#results)
+6. [References](#references)
 
 ## How To Use
 
@@ -25,6 +26,10 @@ Before explaining more on the project, here are a quick steps on how to use the 
 ### Usage Recommendation
 
 Based on the [results](#results) the writer recommend the reader to use this project to understand how the COMCOT model is implemented in code, and how Functional Programming implemented the COMCOT model. Thus, it is more useful for academic and theoretic research. For practical research and simulation the writer highly recommend using the [Fortran](https://github.com/AndybnACT/comcot-gfortran) version.
+
+In simple terms, the writer will assume the reader is doing a research on tsunami modelling, if so:
+1. Use Haskell version for model understanding and implementation.
+2. Use [Fortran](https://github.com/AndybnACT/comcot-gfortran) version for general simulation.
 
 ### Environment Requirements
 1. GHC version 9.4.8
