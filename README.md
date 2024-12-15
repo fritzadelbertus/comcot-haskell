@@ -49,7 +49,8 @@ Some haskell package dependencies:
 2. Make sure the required inputs for tsunami modeling is in the directory.
 3. Modify the `comcot.ctl`  specificly only modify the `General Parameters for Simulation` part, the `Parameters for Fault Model (Segment 01)` part, and the `Parameters for 1st-level grid -- layer 01` part.
 4. Open terminal and write `ghci comcot.hs`
-5. The output is available in the `output` directory
+5. Inside ghci write `main`
+6. After the simulation if finished, the output is available in the `output` directory
 
 ## Key Functional Programming Concepts
 Below listed concepts in Functional Programming implemented in this project.
